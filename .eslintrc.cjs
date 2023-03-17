@@ -26,7 +26,10 @@ const config = {
         fixStyle: 'inline-type-imports'
       }
     ],
-    '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }]
+    '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
+    // '@typescript-eslint/no-unsafe-assignment': 'off',
+    // '@typescript-eslint/no-unsafe-member-access': 'off',
+    // '@typescript-eslint/no-unsafe-call': 'off'
   }
 };
 
