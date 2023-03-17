@@ -8,11 +8,11 @@ import {
   Divider,
   Checkbox,
   Stack,
-  Container,
   Group,
-  type ButtonProps,
-  Center
+  Center,
+  type ButtonProps
 } from '@mantine/core';
+import { signIn } from 'next-auth/react';
 import { IconBrandGoogle, IconBrandGithub } from '@tabler/icons-react';
 import ChatGPTIcon from '@/assets/chatgpt.svg';
 
@@ -39,15 +39,17 @@ function SocialButton(props: ButtonProps) {
 export default function LoginPage() {
   const form = useForm({
     initialValues: {
-      username: '',
+      email: '',
       password: '',
       rembmer: true
     },
 
-    validate: {
-      password: val => (val.length <= 6 ? 'Password should include at least 6 characters' : null)
-    }
+    validate: {}
   });
+
+  const onSubmit = form.onSubmit(
+    values => void signIn('credentials', { ...values, callbackUrl: 'http://localhost:3000/' })
+  );
 
   return (
     <Center mx="auto" h="100%" bg="#f9f9f9">
@@ -77,17 +79,16 @@ export default function LoginPage() {
           </SocialButton>
         </Group>
 
-        <Divider label="Or continue with username" labelPosition="center" my="lg" />
+        <Divider label="Or continue with email" labelPosition="center" my="lg" />
 
-        <form onSubmit={form.onSubmit(() => void 0)}>
+        <form onSubmit={onSubmit}>
           <Stack>
             <TextInput
               required
-              label="Username"
-              placeholder="hello@mantine.dev"
-              value={form.values.username}
-              onChange={event => form.setFieldValue('username', event.currentTarget.value)}
-              error={form.errors.username && 'Invalid username'}
+              label="email"
+              value={form.values.email}
+              onChange={event => form.setFieldValue('email', event.currentTarget.value)}
+              error={form.errors.email && 'Invalid Email'}
               radius="md"
             />
 

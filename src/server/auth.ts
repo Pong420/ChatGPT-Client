@@ -31,6 +31,9 @@ declare module 'next-auth' {
  * @see https://next-auth.js.org/configuration/options
  */
 export const authOptions: NextAuthOptions = {
+  pages: {
+    signIn: '/auth/signin'
+  },
   callbacks: {
     session({ session, token }) {
       if (session?.user) {
@@ -69,23 +72,28 @@ export const authOptions: NextAuthOptions = {
       // You can specify which fields should be submitted, by adding keys to the `credentials` object.
       // e.g. domain, username, password, 2FA token, etc.
       // You can pass any HTML attribute to the <input> tag through the object.
-      credentials: {
-        username: { label: 'Username', type: 'text', placeholder: 'jsmith' },
-        password: { label: 'Password', type: 'password' }
-      },
-      authorize(credentials, req) {
+      credentials: {},
+      // TODO: refactor
+      async authorize(credentials) {
         if (!credentials) return null;
 
-        // Add logic here to look up the user from the credentials supplied
-        const user = { id: '1', name: 'J Smith', email: 'jsmith@example.com' };
+        const { email, password } = credentials as {
+          email: string;
+          password: string;
+        };
 
-        if (user) {
+        const user = await prisma.user.findUnique({ where: { email } });
+
+        if (!user || !user.password) return null;
+
+        const isPasswordValid = user.password === password;
+
+        if (isPasswordValid) {
           // Any object returned will be saved in `user` property of the JWT
           return user;
         } else {
           // If you return null then an error will be displayed advising the user to check their details.
           return null;
-
           // You can also Reject this callback with an Error thus the user will be sent to the error page with the error message as a query parameter
         }
       }

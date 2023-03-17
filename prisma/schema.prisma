@@ -56,6 +56,7 @@ model User {
     accounts      Account[]
     sessions      Session[]
     Conversation  Conversation[]
+    password      String?
 }
 
 model VerificationToken {
@@ -71,5 +72,6 @@ model Conversation {
     userId   String
     user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
     model    String
+    mode     String
     messages Json
 }
