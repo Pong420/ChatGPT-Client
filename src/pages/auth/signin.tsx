@@ -85,7 +85,7 @@ export default function LoginPage() {
           <Stack>
             <TextInput
               required
-              label="email"
+              label="Email"
               value={form.values.email}
               onChange={event => form.setFieldValue('email', event.currentTarget.value)}
               error={form.errors.email && 'Invalid Email'}
