@@ -13,7 +13,7 @@ import {
   type ButtonProps
 } from '@mantine/core';
 import { signIn } from 'next-auth/react';
-import { IconBrandGoogle, IconBrandGithub } from '@tabler/icons-react';
+import { IconBrandGoogle, IconBrandGithub, IconAt, IconLock } from '@tabler/icons-react';
 import ChatGPTIcon from '@/assets/chatgpt.svg';
 
 function SocialButton(props: ButtonProps) {
@@ -85,21 +85,20 @@ export default function LoginPage() {
           <Stack>
             <TextInput
               required
+              icon={<IconAt size="1rem" />}
               label="Email"
-              value={form.values.email}
-              onChange={event => form.setFieldValue('email', event.currentTarget.value)}
+              placeholder="Email"
+              {...form.getInputProps('email')}
               error={form.errors.email && 'Invalid Email'}
-              radius="md"
             />
 
             <PasswordInput
               required
+              icon={<IconLock size="1rem" />}
               label="Password"
               placeholder="Your password"
-              value={form.values.password}
-              onChange={event => form.setFieldValue('password', event.currentTarget.value)}
+              {...form.getInputProps('password')}
               error={form.errors.password && 'Password should include at least 6 characters'}
-              radius="md"
             />
 
             <Checkbox label="Remember me" />
