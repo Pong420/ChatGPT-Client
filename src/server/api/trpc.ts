@@ -127,3 +127,12 @@ const enforceUserIsAuthed = t.middleware(({ ctx, next }) => {
  * @see https://trpc.io/docs/procedures
  */
 export const protectedProcedure = t.procedure.use(enforceUserIsAuthed);
+
+export const developmentProcedure = t.procedure.use(
+  t.middleware(({ next }) => {
+    if (process.env.NODE_ENV === 'production') {
+      throw new TRPCError({ code: 'NOT_FOUND' });
+    }
+    return next();
+  })
+);

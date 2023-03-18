@@ -4,10 +4,11 @@ import { api } from '@/utils/api';
 
 export default function AdminPage() {
   const users = api.admin.getUsers.useQuery();
+  const usersData = users.data || [];
 
   return (
     <div>
-      <UserTable data={users.data?.map(u => ({ name: u.email, email: u.email, company: 'World' })) || []} />
+      <UserTable data={usersData.map(u => ({ name: u.email || '', email: u.email, company: 'World' }))} />
     </div>
   );
 }
