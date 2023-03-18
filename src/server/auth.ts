@@ -1,5 +1,6 @@
 import { type GetServerSidePropsContext } from 'next';
 import { getServerSession, type NextAuthOptions, type DefaultSession } from 'next-auth';
+import { default as bcrypt } from 'bcrypt';
 import { PrismaAdapter } from '@next-auth/prisma-adapter';
 import { prisma } from '@/server/db';
 import CredentialsProvider from 'next-auth/providers/credentials';
@@ -86,7 +87,7 @@ export const authOptions: NextAuthOptions = {
 
         if (!user || !user.password) return null;
 
-        const isPasswordValid = user.password === password;
+        const isPasswordValid = await bcrypt.compare(password, user.password);
 
         if (isPasswordValid) {
           // Any object returned will be saved in `user` property of the JWT
@@ -112,3 +113,11 @@ export const getServerAuthSession = (ctx: {
 }) => {
   return getServerSession(ctx.req, ctx.res, authOptions);
 };
+
+export const hash = (plaintextPassword: string) =>
+  new Promise<string>((resolve, reject) => {
+    bcrypt.hash(plaintextPassword, 10, function (error, hash) {
+      if (error) return reject(error);
+      resolve(hash);
+    });
+  });

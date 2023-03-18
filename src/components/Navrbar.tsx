@@ -1,18 +1,27 @@
+import { useUser } from '@/hooks/useUser';
 import {
   createStyles,
   Navbar as MantineNavbar,
   TextInput,
   Code,
   UnstyledButton,
-  Badge,
   Text,
   Group,
   ActionIcon,
   Tooltip,
   rem
 } from '@mantine/core';
-import { IconBulb, IconUser, IconCheckbox, IconSearch, IconPlus, IconSelector } from '@tabler/icons-react';
-import Link from 'next/link';
+import {
+  IconBulb,
+  IconUser,
+  IconCheckbox,
+  IconSearch,
+  IconPlus,
+  IconSelector,
+  IconMessages,
+  IconTrash,
+  IconEdit
+} from '@tabler/icons-react';
 import { UserButton } from './UserButton';
 
 const useStyles = createStyles(theme => ({
@@ -37,13 +46,13 @@ const useStyles = createStyles(theme => ({
     border: `${rem(1)} solid ${theme.colorScheme === 'dark' ? theme.colors.dark[7] : theme.colors.gray[2]}`
   },
 
-  mainLinks: {
+  list: {
     paddingLeft: `calc(${theme.spacing.md} - ${theme.spacing.xs})`,
     paddingRight: `calc(${theme.spacing.md} - ${theme.spacing.xs})`,
     paddingBottom: theme.spacing.md
   },
 
-  mainLink: {
+  listItem: {
     display: 'flex',
     alignItems: 'center',
     width: '100%',
@@ -59,50 +68,21 @@ const useStyles = createStyles(theme => ({
     }
   },
 
-  mainLinkInner: {
+  itemContent: {
     display: 'flex',
     alignItems: 'center',
     flex: 1
   },
 
-  mainLinkIcon: {
-    marginRight: theme.spacing.sm,
+  itemIcon: {
+    marginRight: theme.spacing.xs,
     color: theme.colorScheme === 'dark' ? theme.colors.dark[2] : theme.colors.gray[6]
   },
 
-  mainLinkBadge: {
-    padding: 0,
-    width: rem(20),
-    height: rem(20),
-    pointerEvents: 'none'
-  },
-
-  collections: {
-    paddingLeft: `calc(${theme.spacing.md} - ${rem(6)})`,
-    paddingRight: `calc(${theme.spacing.md} - ${rem(6)})`,
-    paddingBottom: theme.spacing.md
-  },
-
-  collectionsHeader: {
-    paddingLeft: `calc(${theme.spacing.md} + ${rem(2)})`,
+  header: {
+    paddingLeft: theme.spacing.md,
     paddingRight: theme.spacing.md,
     marginBottom: rem(5)
-  },
-
-  collectionLink: {
-    display: 'block',
-    padding: `${rem(8)} ${theme.spacing.xs}`,
-    textDecoration: 'none',
-    borderRadius: theme.radius.sm,
-    fontSize: theme.fontSizes.xs,
-    color: theme.colorScheme === 'dark' ? theme.colors.dark[0] : theme.colors.gray[7],
-    lineHeight: 1,
-    fontWeight: 500,
-
-    '&:hover': {
-      backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[6] : theme.colors.gray[0],
-      color: theme.colorScheme === 'dark' ? theme.white : theme.black
-    }
   }
 }));
 
@@ -112,50 +92,33 @@ const links = [
   { icon: IconUser, label: 'Contacts' }
 ];
 
-const collections = [
-  { emoji: '👍', label: 'Sales' },
-  { emoji: '🚚', label: 'Deliveries' },
-  { emoji: '💸', label: 'Discounts' },
-  { emoji: '💰', label: 'Profits' },
-  { emoji: '✨', label: 'Reports' },
-  { emoji: '🛒', label: 'Orders' },
-  { emoji: '📅', label: 'Events' },
-  { emoji: '🙈', label: 'Debts' },
-  { emoji: '💁‍♀️', label: 'Customers' }
-];
-
 export function Navbar() {
   const { classes } = useStyles();
+  const user = useUser();
+
+  if (!user) return null;
 
   const mainLinks = links.map(link => (
-    <UnstyledButton key={link.label} className={classes.mainLink}>
-      <div className={classes.mainLinkInner}>
-        <link.icon size={20} className={classes.mainLinkIcon} stroke={1.5} />
+    <div key={link.label} className={classes.listItem} onClick={console.log}>
+      <div className={classes.itemContent}>
+        <IconMessages size={20} className={classes.itemIcon} stroke={1.5} />
         <span>{link.label}</span>
       </div>
-      {link.notifications && (
-        <Badge size="sm" variant="filled" className={classes.mainLinkBadge}>
-          {link.notifications}
-        </Badge>
-      )}
-    </UnstyledButton>
-  ));
 
-  const collectionLinks = collections.map(collection => (
-    <Link href="/" onClick={event => event.preventDefault()} key={collection.label} className={classes.collectionLink}>
-      <span style={{ marginRight: rem(9), fontSize: rem(16) }}>{collection.emoji}</span> {collection.label}
-    </Link>
+      <ActionIcon size={20} color="dark" onClick={event => event.stopPropagation()}>
+        <IconEdit size="0.8rem" stroke={1.5} />
+      </ActionIcon>
+
+      <ActionIcon size={20} color="dark" onClick={event => event.stopPropagation()}>
+        <IconTrash size="0.8rem" stroke={1.5} />
+      </ActionIcon>
+    </div>
   ));
 
   return (
     <MantineNavbar p="md" pt="0" className={classes.navbar}>
       <MantineNavbar.Section className={classes.section}>
-        <UserButton
-          image="https://i.imgur.com/fGxgcDF.png"
-          name="Bob Rulebreaker"
-          email="Product owner"
-          icon={<IconSelector size="0.9rem" stroke={1.5} />}
-        />
+        <UserButton name={user.name || ''} icon={<IconSelector size="0.9rem" stroke={1.5} />} />
       </MantineNavbar.Section>
 
       <TextInput
@@ -169,21 +132,18 @@ export function Navbar() {
       />
 
       <MantineNavbar.Section className={classes.section}>
-        <div className={classes.mainLinks}>{mainLinks}</div>
-      </MantineNavbar.Section>
-
-      <MantineNavbar.Section className={classes.section}>
-        <Group className={classes.collectionsHeader} position="apart">
+        <Group className={classes.header} position="apart">
           <Text size="xs" weight={500} color="dimmed">
-            Collections
+            Conversations
           </Text>
-          <Tooltip label="Create collection" withArrow position="right">
+          <Tooltip label="Create conversation" withArrow position="right">
             <ActionIcon variant="default" size={18}>
               <IconPlus size="0.8rem" stroke={1.5} />
             </ActionIcon>
           </Tooltip>
         </Group>
-        <div className={classes.collections}>{collectionLinks}</div>
+
+        <div className={classes.list}>{mainLinks}</div>
       </MantineNavbar.Section>
     </MantineNavbar>
   );

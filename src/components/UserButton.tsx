@@ -1,5 +1,6 @@
-import { UnstyledButton, UnstyledButtonProps, Group, Avatar, Text, createStyles } from '@mantine/core';
+import { UnstyledButton, type UnstyledButtonProps, Group, Avatar, Text, createStyles } from '@mantine/core';
 import { IconChevronRight } from '@tabler/icons-react';
+import ChatGPTIcon from '@/assets/chatgpt.svg';
 
 const useStyles = createStyles(theme => ({
   user: {
@@ -15,27 +16,28 @@ const useStyles = createStyles(theme => ({
 }));
 
 interface UserButtonProps extends UnstyledButtonProps {
-  image: string;
+  image?: string;
   name: string;
-  email: string;
   icon?: React.ReactNode;
 }
 
-export function UserButton({ image, name, email, icon, ...others }: UserButtonProps) {
+export function UserButton({ image, name, icon, ...others }: UserButtonProps) {
   const { classes } = useStyles();
 
   return (
     <UnstyledButton className={classes.user} {...others}>
-      <Group>
-        <Avatar src={image} radius="xl" />
+      <Group spacing={10}>
+        <Avatar src={image} radius="xl">
+          {!image && (
+            <span style={{ fontSize: 24 }}>
+              <ChatGPTIcon />
+            </span>
+          )}
+        </Avatar>
 
         <div style={{ flex: 1 }}>
           <Text size="sm" weight={500}>
             {name}
-          </Text>
-
-          <Text color="dimmed" size="xs">
-            {email}
           </Text>
         </div>
 

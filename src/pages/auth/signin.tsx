@@ -86,6 +86,7 @@ export default function LoginPage() {
             <TextInput
               required
               icon={<IconAt size="1rem" />}
+              name="email"
               label="Email"
               placeholder="Email"
               {...form.getInputProps('email')}
@@ -95,6 +96,7 @@ export default function LoginPage() {
             <PasswordInput
               required
               icon={<IconLock size="1rem" />}
+              name="password"
               label="Password"
               placeholder="Your password"
               {...form.getInputProps('password')}
