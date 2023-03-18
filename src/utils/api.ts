@@ -10,6 +10,7 @@ import { type inferRouterInputs, type inferRouterOutputs } from '@trpc/server';
 import superjson from 'superjson';
 
 import { type AppRouter } from '@/server/api/root';
+import { Prisma } from '@prisma/client';
 
 const getBaseUrl = () => {
   if (typeof window !== 'undefined') return ''; // browser should use relative url
@@ -65,3 +66,12 @@ export type RouterInputs = inferRouterInputs<AppRouter>;
  * @example type HelloOutput = RouterOutputs['example']['hello']
  */
 export type RouterOutputs = inferRouterOutputs<AppRouter>;
+
+export interface ChatGPTMessage {
+  role: string;
+  content: string;
+}
+
+export const isMessages = (payload: unknown): payload is ChatGPTMessage[] => {
+  return Array.isArray(payload);
+};
