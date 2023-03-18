@@ -1,7 +1,8 @@
-import { type NextPage, type GetServerSideProps } from 'next';
+import { type GetServerSideProps } from 'next';
 import { getServerSession } from 'next-auth/next';
-import { Navbar } from '@/components/Navrbar';
+import { getLayout } from '@/components/Layout/Layout';
 import { authOptions } from '@/server/auth';
+import type { NextPageWithLayout } from './_app';
 
 export const getServerSideProps: GetServerSideProps = async ({ req, res }) => {
   return {
@@ -11,8 +12,10 @@ export const getServerSideProps: GetServerSideProps = async ({ req, res }) => {
   };
 };
 
-const Home: NextPage = () => {
-  return <Navbar />;
+const Home: NextPageWithLayout = () => {
+  return null;
 };
+
+Home.getLayout = getLayout;
 
 export default Home;

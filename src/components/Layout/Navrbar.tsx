@@ -2,8 +2,8 @@ import { useUser } from '@/hooks/useUser';
 import { createStyles, Navbar as MantineNavbar, Text, Group, rem } from '@mantine/core';
 import { IconSelector } from '@tabler/icons-react';
 import { UserButton } from './UserButton';
-import { ConversationList } from './Conversation/ConversationList';
-import { CreateConversation } from './Conversation/ConversationAction';
+import { ConversationList } from '../Conversation/ConversationList';
+import { CreateConversation } from '../Conversation/ConversationAction';
 
 const useStyles = createStyles(theme => ({
   navbar: {

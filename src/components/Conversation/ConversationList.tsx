@@ -1,8 +1,9 @@
 import { api, isMessages } from '@/utils/api';
-import { createStyles, rem } from '@mantine/core';
+import { Stack, createStyles, rem } from '@mantine/core';
 import { IconMessages } from '@tabler/icons-react';
+import type { Conversation as ConversationData } from '@prisma/client';
+import { useNavigate } from '@/hooks/useNavigate';
 import { DeleteConveration, EditConversation } from './ConversationAction';
-import Link from 'next/link';
 
 const useStyles = createStyles(theme => ({
   list: {
@@ -28,6 +29,11 @@ const useStyles = createStyles(theme => ({
     }
   },
 
+  listItemActive: {
+    backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[6] : theme.colors.gray[0],
+    color: theme.colorScheme === 'dark' ? theme.white : theme.black
+  },
+
   itemContent: {
     display: 'flex',
     alignItems: 'center',
@@ -40,33 +46,45 @@ const useStyles = createStyles(theme => ({
   }
 }));
 
+function ConversationItem({ conversation: c }: { conversation: ConversationData }) {
+  const messages = c.messages;
+
+  if (!isMessages(messages)) {
+    throw new Error('bad implementation');
+  }
+
+  const { classes } = useStyles();
+  const { router, pathname, active } = useNavigate(`/conversation/${c.id}`);
+  const title = messages?.[0]?.content || 'Conversation';
+
+  return (
+    <div
+      className={`${classes.listItem} ${active ? classes.listItemActive : ''}`.trim()}
+      onClick={() => {
+        router.push({ pathname }).catch(() => void 0);
+      }}
+    >
+      <div className={classes.itemContent}>
+        <IconMessages size={20} className={classes.itemIcon} stroke={1.5} />
+        {title}
+      </div>
+
+      <EditConversation conversation={c} />
+      <DeleteConveration conversation={c} />
+    </div>
+  );
+}
+
 export function ConversationList({}) {
   const { classes } = useStyles();
   const conversations = api.conversation.all.useQuery();
   const data = conversations.data || [];
 
   return (
-    <div className={classes.list}>
-      {data.map((c, i) => {
-        const messages = c.messages;
-        if (!isMessages(messages)) return null;
-
-        const title = messages?.[0]?.content || 'Conversation';
-
-        return (
-          <Link key={i} href={`/conversation/${c.id}`}>
-            <div className={classes.listItem}>
-              <div className={classes.itemContent}>
-                <IconMessages size={20} className={classes.itemIcon} stroke={1.5} />
-                {title}
-              </div>
-
-              <EditConversation conversation={c} />
-              <DeleteConveration conversation={c} />
-            </div>
-          </Link>
-        );
-      })}
-    </div>
+    <Stack className={classes.list} spacing={5}>
+      {data.map(c => (
+        <ConversationItem key={c.id} conversation={c} />
+      ))}
+    </Stack>
   );
 }
