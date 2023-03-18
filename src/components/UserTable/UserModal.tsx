@@ -1,12 +1,9 @@
+import { useEffect } from 'react';
 import { Modal, Stack, type ModalProps, Button, TextInput, PasswordInput, Group } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { IconAt, IconLock, IconUser, IconUserPlus } from '@tabler/icons-react';
 
-interface UserModalFields {
-  name?: string;
-  email?: string;
-  password?: string;
-}
+type UserModalFields = typeof _initialValues;
 
 export interface UserModalProps extends Omit<ModalProps, 'onSubmit'> {
   initialValues?: UserModalFields;
@@ -14,12 +11,28 @@ export interface UserModalProps extends Omit<ModalProps, 'onSubmit'> {
   onSubmit?: (payload: Required<UserModalFields>) => void;
 }
 
+const _initialValues = {
+  name: '',
+  email: '',
+  password: ''
+};
+
 export function UserModal({ title, initialValues, isLoading, onSubmit, ...props }: UserModalProps) {
   const form = useForm({
-    initialValues
+    initialValues: { ..._initialValues, ...initialValues }
   });
 
-  const _onSubmit = form.onSubmit(values => onSubmit?.(values as Required<UserModalFields>));
+  const _onSubmit = form.onSubmit(values => {
+    onSubmit?.(values as Required<UserModalFields>);
+  });
+
+  const resetForm = form.reset;
+
+  useEffect(() => {
+    if (props.opened) {
+      resetForm();
+    }
+  }, [props.opened, resetForm]);
 
   return (
     <Modal

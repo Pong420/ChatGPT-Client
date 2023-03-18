@@ -8,7 +8,13 @@ export interface DeleteUserModalprops extends ModalProps {
 }
 
 export function DeleteUserModal({ user, ...props }: DeleteUserModalprops) {
-  const deleteUser = api.admin.deleteUser.useMutation({ onSuccess: () => props.onClose() });
+  const context = api.useContext();
+  const deleteUser = api.admin.deleteUser.useMutation({
+    onSuccess: user => {
+      props.onClose();
+      context.admin.getUsers.setData(undefined, users => users && users.filter(u => u.id !== user.id));
+    }
+  });
 
   return (
     <Modal

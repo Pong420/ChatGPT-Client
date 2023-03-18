@@ -3,10 +3,17 @@ import { useDisclosure } from '@mantine/hooks';
 import { IconPlus } from '@tabler/icons-react';
 import { api } from '@/utils/api';
 import { UserModal } from './UserModal';
+import type { User } from '@prisma/client';
 
 export function CreateUser() {
+  const context = api.useContext();
   const [opened, control] = useDisclosure();
-  const createUser = api.admin.createUser.useMutation({ onSuccess: control.close });
+  const createUser = api.admin.createUser.useMutation({
+    onSuccess: user => {
+      control.close();
+      context.admin.getUsers.setData(undefined, users => users && [...users, user as User]);
+    }
+  });
 
   return (
     <>
