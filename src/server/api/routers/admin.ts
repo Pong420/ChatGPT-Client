@@ -7,12 +7,14 @@ export const adminhRouter = createTRPCRouter({
     const users = await prisma.user.findMany({});
     return users;
   }),
-  createUser: developmentProcedure.input(z.object({ email: z.string(), password: z.string() })).mutation(async req => {
-    const user = await prisma.user.create({ data: req.input });
-    return user;
-  }),
+  createUser: developmentProcedure
+    .input(z.object({ name: z.string(), email: z.string(), password: z.string() }))
+    .mutation(async req => {
+      const { password, ...user } = await prisma.user.create({ data: req.input });
+      return user;
+    }),
   deleteUser: developmentProcedure.input(z.object({ id: z.string() })).mutation(async req => {
-    const user = await prisma.user.delete({ where: { id: req.input.id } });
+    const { password, ...user } = await prisma.user.delete({ where: { id: req.input.id } });
     return user;
   })
 });

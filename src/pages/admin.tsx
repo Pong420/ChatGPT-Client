@@ -1,5 +1,5 @@
-// import { CreateUserModal } from '@/components/admin/CreateUserModal';
-import { UserTable } from '@/components/admin/UserTable';
+import { Container, Paper } from '@mantine/core';
+import { UserTable } from '@/components/UserTable';
 import { api } from '@/utils/api';
 
 export default function AdminPage() {
@@ -7,8 +7,10 @@ export default function AdminPage() {
   const usersData = users.data || [];
 
   return (
-    <div>
-      <UserTable data={usersData.map(u => ({ name: u.email || '', email: u.email, company: 'World' }))} />
-    </div>
+    <Container p="xl">
+      <Paper withBorder shadow="md" w="100%" p="lg">
+        <UserTable data={usersData} />
+      </Paper>
+    </Container>
   );
 }
