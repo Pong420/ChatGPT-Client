@@ -1,11 +1,12 @@
+import { useEffect } from 'react';
 import { type GetServerSideProps } from 'next';
 import { useRouter } from 'next/router';
 import { getServerSession } from 'next-auth/next';
+import type { NextPageWithLayout } from '@/pages/_app';
 import { Conversation } from '@/components/Conversation/Conversation';
 import { getLayout } from '@/components/Layout/Layout';
 import { api } from '@/utils/api';
 import { authOptions } from '@/server/auth';
-import type { NextPageWithLayout } from '../_app';
 
 export const getServerSideProps: GetServerSideProps = async ({ req, res }) => {
   return {
@@ -15,29 +16,26 @@ export const getServerSideProps: GetServerSideProps = async ({ req, res }) => {
   };
 };
 
-function ConversationPageComponent({ id }: { id: string }) {
-  const conversation = api.conversation.getOne.useQuery({ id });
-
-  if (conversation.isLoading) {
-    return <div>Loading ...</div>;
-  }
-
-  if (!conversation.data) return null;
-
-  return <Conversation conversation={conversation.data} />;
-}
-
 const ConversationPage: NextPageWithLayout = () => {
   const router = useRouter();
+  const { push } = router;
+  // id could be undefined
   const id = router.query.id;
+  const conversations = api.conversation.all.useQuery(undefined, {
+    enabled: false
+  });
+  const conversation = conversations.data?.find(c => c.id === id);
+  const shouldRedirect = id && conversations.isSuccess && !conversation;
 
-  if (id === undefined) return null;
+  useEffect(() => {
+    if (shouldRedirect) {
+      push({ pathname: '/' }).catch(() => void 0);
+    }
+  }, [shouldRedirect, push]);
 
-  if (typeof id !== 'string') {
-    throw new Error(`internal server error`);
-  }
+  if (!conversation) return null;
 
-  return <ConversationPageComponent id={id} />;
+  return <Conversation conversation={conversation} />;
 };
 
 ConversationPage.getLayout = getLayout;
