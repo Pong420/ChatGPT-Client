@@ -6,10 +6,6 @@ import { ConversationList } from '../Conversation/ConversationList';
 import { CreateConversation } from '../Conversation/ConversationAction';
 
 const useStyles = createStyles(theme => ({
-  navbar: {
-    width: 300
-  },
-
   section: {
     marginLeft: `calc(${theme.spacing.md} * -1)`,
     marginRight: `calc(${theme.spacing.md} * -1)`,
@@ -27,6 +23,8 @@ const useStyles = createStyles(theme => ({
   }
 }));
 
+const width = 300;
+
 export function Navbar() {
   const { classes } = useStyles();
   const user = useUser();
@@ -34,7 +32,7 @@ export function Navbar() {
   if (!user) return null;
 
   return (
-    <MantineNavbar p="md" pt="0" className={classes.navbar}>
+    <MantineNavbar p="md" pt="0" width={{ xs: width, lg: width }}>
       <MantineNavbar.Section className={classes.section}>
         <UserButton name={user.name || ''} icon={<IconSelector size="0.9rem" stroke={1.5} />} />
       </MantineNavbar.Section>
