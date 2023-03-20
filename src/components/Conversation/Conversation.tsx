@@ -1,7 +1,10 @@
-import { isMessages } from '@/utils/api';
+import { useLayoutEffect } from 'react';
+import { Container, createStyles } from '@mantine/core';
+import { useInputState } from '@mantine/hooks';
 import type { Conversation as ConversationData } from '@prisma/client';
+import { isMessages } from '@/utils/api';
 import { ConversationMessage } from './ConversationMessage';
-import { Container, TextInput, createStyles } from '@mantine/core';
+import { InputArea } from './InputArea';
 
 export interface ConversationProps {
   conversation: ConversationData;
@@ -18,16 +21,21 @@ const _messages = Array.from({ length: 10 }, () => [
   }
 ]).flat();
 
-const useStyles = createStyles({
+const useStyles = createStyles(theme => ({
   root: {
     position: 'relative'
   },
   messages: {
     '> :nth-of-type(even)': {
-      backgroundColor: '#eee'
+      backgroundColor: theme.colors.dark[5]
     }
+  },
+  gradient: {
+    background: `linear-gradient(to bottom, ${theme.fn.rgba(theme.colors.dark[9], 0.1)} 0%, ${
+      theme.colors.dark[9]
+    } 200%)`
   }
-});
+}));
 
 export function Conversation({ conversation }: ConversationProps) {
   const { messages } = conversation;
@@ -37,6 +45,11 @@ export function Conversation({ conversation }: ConversationProps) {
   }
 
   const { classes } = useStyles();
+  const [content, setContent] = useInputState('');
+
+  useLayoutEffect(() => {
+    window.scrollTo(0, document.documentElement.scrollHeight);
+  }, [conversation.id]);
 
   return (
     <div className={classes.root}>
@@ -45,9 +58,9 @@ export function Conversation({ conversation }: ConversationProps) {
           <ConversationMessage key={idx} message={m} />
         ))}
       </div>
-      <Container pos="sticky" size="100%" bottom="0" p="md" m="0" bg="#fff">
+      <Container className={classes.gradient} pos="sticky" size="100%" bottom="0" p="md" m="0">
         <Container>
-          <TextInput />
+          <InputArea value={content} onChange={setContent} onSubmit={console.log} />
         </Container>
       </Container>
     </div>

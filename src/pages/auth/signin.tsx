@@ -21,13 +21,15 @@ function SocialButton(props: ButtonProps) {
     <Button
       {...props}
       styles={theme => {
-        const color = '#e9e9e9';
+        const [backgroundColor, color] =
+          theme.colorScheme === 'dark' ? [theme.colors.dark[3], '#fff'] : [theme.colors.gray[3], '#000'];
         return {
           root: {
-            backgroundColor: '#e9e9e9',
             height: 40,
+            color,
+            backgroundColor,
             '&:not([data-disabled])': theme.fn.hover({
-              backgroundColor: theme.fn.darken(color, 0.05)
+              backgroundColor: theme.fn.darken(backgroundColor, 0.05)
             }) as string
           }
         };
@@ -52,7 +54,7 @@ export default function LoginPage() {
   );
 
   return (
-    <Center mx="auto" h="100%" bg="#f9f9f9">
+    <Center mx="auto" h="100%">
       <Paper withBorder shadow="md" w="100%" p={30} maw={420} radius="md">
         <Group spacing={5}>
           <ChatGPTIcon />
@@ -71,11 +73,11 @@ export default function LoginPage() {
 
         <Group grow spacing={5} mt={10}>
           <SocialButton>
-            <IconBrandGoogle color="#000" />
+            <IconBrandGoogle />
           </SocialButton>
 
           <SocialButton>
-            <IconBrandGithub color="#000" />
+            <IconBrandGithub />
           </SocialButton>
         </Group>
 

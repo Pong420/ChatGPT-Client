@@ -6,6 +6,8 @@ import { SessionProvider } from 'next-auth/react';
 import { MantineProvider } from '@mantine/core';
 import { type GetLayout } from '@/components/Layout/Layout';
 import { api } from '@/utils/api';
+import '@fontsource/noto-sans-hk';
+import '@fontsource/roboto';
 import '@/styles/globals.css';
 
 export type NextPageWithLayout<P = Record<string, unknown>, IP = P> = NextPage<P, IP> & {
@@ -32,7 +34,30 @@ const MyApp = ({ Component, pageProps: { session, ...pageProps } }: MyAppProps) 
           withNormalizeCSS
           theme={{
             /** Put your mantine theme override here */
-            colorScheme: 'light'
+            colorScheme: 'dark',
+            fontFamily:
+              'Roboto, Noto Sans HK, -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji',
+            globalStyles: theme => ({
+              '*, *::before, *::after': {
+                boxSizing: 'border-box'
+              },
+
+              body: {
+                // Roboto, Noto Sans HK
+                ...(theme.fn.fontStyles() as Record<string, string>),
+                backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[4] : theme.colors.gray[0],
+                color: theme.colorScheme === 'dark' ? theme.colors.dark[0] : theme.black,
+                lineHeight: theme.lineHeight
+              },
+
+              '.your-class': {
+                backgroundColor: 'red'
+              },
+
+              '#your-id > [data-active]': {
+                backgroundColor: 'pink'
+              }
+            })
           }}
         >
           {getLayout(<Component {...pageProps} />)}
