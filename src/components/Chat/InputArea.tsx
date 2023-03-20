@@ -54,6 +54,7 @@ export function InputArea({ onSubmit, value = '', ...props }: InputAreaProps) {
         autoFocus
         minRows={1}
         maxRows={6}
+        value={value}
         onKeyUp={onKeyUp}
         onKeyDown={onKeyDown}
         rightSection={

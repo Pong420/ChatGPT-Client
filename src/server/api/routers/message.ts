@@ -11,7 +11,8 @@ export const messageRouter = createTRPCRouter({
     .input(
       z.object({
         chat: z.string(),
-        content: z.string()
+        content: z.string(),
+        ref: z.string() // for frontend
       })
     )
     .mutation(async req => {

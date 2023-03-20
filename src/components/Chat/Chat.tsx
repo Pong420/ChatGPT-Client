@@ -1,9 +1,10 @@
 import { useLayoutEffect } from 'react';
 import { Container, Stack, createStyles } from '@mantine/core';
 import { useInputState } from '@mantine/hooks';
+import { nanoid } from 'nanoid';
+import { api } from '@/utils/api';
 import { ChatMessage } from './ChatMessage';
 import { InputArea } from './InputArea';
-import { api } from '@/utils/api';
 
 export interface ChatProps {
   chatId: string;
@@ -35,18 +36,24 @@ export function Chat({ chatId }: ChatProps) {
   const data = messages.data || [];
 
   const sendMessage = api.message.send.useMutation({
-    onSuccess: resp => {
-      apiContext.message.all.setData({ chat: chatId }, m => m && [...m, resp]);
+    onMutate: ({ content, chat, ref }) => {
+      apiContext.message.all.setData(
+        { chat: chatId },
+        m => m && [...m, { id: ref, role: 'user', content, chatId: chat }]
+      );
+    },
+    onSuccess: (resp, { ref }) => {
+      apiContext.message.all.setData({ chat: chatId }, m => m && m.map(mm => (mm.id === ref ? resp : mm)));
     }
   });
   const onSubmit = (content: string) => {
-    sendMessage.mutate({ chat: chatId, content });
     setContent('');
+    sendMessage.mutate({ chat: chatId, content, ref: nanoid() });
   };
 
   useLayoutEffect(() => {
     window.scrollTo(0, document.documentElement.scrollHeight);
-  }, [chatId]);
+  }, [chatId, data.length]);
 
   return (
     <Stack className={classes.root} spacing={0}>
