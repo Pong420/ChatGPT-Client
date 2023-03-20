@@ -1,4 +1,4 @@
-import { api, isMessages } from '@/utils/api';
+import { api } from '@/utils/api';
 import { Stack, createStyles, rem } from '@mantine/core';
 import { IconMessages } from '@tabler/icons-react';
 import type { Chat as ChatData } from '@prisma/client';
@@ -47,15 +47,8 @@ const useStyles = createStyles(theme => ({
 }));
 
 function ChatItem({ chat: c }: { chat: ChatData }) {
-  const messages = c.messages;
-
-  if (!isMessages(messages)) {
-    throw new Error('bad implementation');
-  }
-
   const { classes } = useStyles();
   const { router, pathname, active } = useNavigate(`/chat/${c.id}`);
-  const title = messages?.[0]?.content || 'Chat';
 
   return (
     <div
@@ -66,7 +59,7 @@ function ChatItem({ chat: c }: { chat: ChatData }) {
     >
       <div className={classes.itemContent}>
         <IconMessages size={20} className={classes.itemIcon} stroke={1.5} />
-        {title}
+        New Chat
       </div>
 
       <EditChat chat={c} />

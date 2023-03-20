@@ -66,12 +66,3 @@ export type RouterInputs = inferRouterInputs<AppRouter>;
  * @example type HelloOutput = RouterOutputs['example']['hello']
  */
 export type RouterOutputs = inferRouterOutputs<AppRouter>;
-
-export interface ChatGPTMessage {
-  role: string;
-  content: string;
-}
-
-export const isMessages = (payload: unknown): payload is ChatGPTMessage[] => {
-  return Array.isArray(payload);
-};

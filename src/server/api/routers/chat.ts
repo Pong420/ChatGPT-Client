@@ -1,15 +1,19 @@
 import { z } from 'zod';
 import { prisma } from '@/server/db';
 import { TRPCError } from '@trpc/server';
+import { DefalutChatGPTModel } from '@/constant';
 import { createTRPCRouter, protectedProcedure } from '../trpc';
 
+/**
+ * TODO:
+ * - verify modle is valid
+ *   https://platform.openai.com/docs/api-reference/models
+ */
+
 export const chatRouter = createTRPCRouter({
-  all: protectedProcedure.query(() => {
-    return prisma.chat.findMany({});
+  all: protectedProcedure.query(req => {
+    return prisma.chat.findMany({ where: { userId: req.ctx.session.user.id } });
   }),
-  getOne: protectedProcedure
-    .input(z.object({ id: z.string() }))
-    .query(req => prisma.chat.findFirst({ where: { id: req.input.id } })),
   create: protectedProcedure
     .input(
       z.object({
@@ -19,7 +23,7 @@ export const chatRouter = createTRPCRouter({
     )
     .mutation(async req => {
       const chat = await prisma.chat.create({
-        data: { userId: req.ctx.session.user.id, mode: '', model: '', messages: [] }
+        data: { userId: req.ctx.session.user.id, mode: '', model: DefalutChatGPTModel }
       });
       return chat;
     }),

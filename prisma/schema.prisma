@@ -68,10 +68,18 @@ model VerificationToken {
 }
 
 model Chat {
-    id       String @id @default(cuid())
+    id       String    @id @default(cuid())
     userId   String
-    user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+    user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
     model    String
     mode     String
-    messages Json
+    messages Message[]
+}
+
+model Message {
+    id      String  @id @default(cuid())
+    chat    Chat?   @relation(fields: [chatId], references: [id])
+    chatId  String?
+    role    String
+    content String
 }

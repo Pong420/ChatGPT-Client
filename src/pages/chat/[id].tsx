@@ -19,7 +19,6 @@ export const getServerSideProps: GetServerSideProps = async ({ req, res }) => {
 const ChatPage: NextPageWithLayout = () => {
   const router = useRouter();
   const { push } = router;
-  // id could be undefined
   const id = router.query.id;
   const chats = api.chat.all.useQuery(undefined, {
     enabled: false
@@ -33,9 +32,9 @@ const ChatPage: NextPageWithLayout = () => {
     }
   }, [shouldRedirect, push]);
 
-  if (!chat) return null;
+  if (!chat || typeof id !== 'string') return null;
 
-  return <Chat chat={chat} />;
+  return <Chat chatId={id} />;
 };
 
 ChatPage.getLayout = getLayout;

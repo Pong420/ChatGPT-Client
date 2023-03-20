@@ -1,31 +1,21 @@
 import { useLayoutEffect } from 'react';
-import { Container, createStyles } from '@mantine/core';
+import { Container, Stack, createStyles } from '@mantine/core';
 import { useInputState } from '@mantine/hooks';
-import type { Chat as ChatData } from '@prisma/client';
-import { isMessages } from '@/utils/api';
 import { ChatMessage } from './ChatMessage';
 import { InputArea } from './InputArea';
+import { api } from '@/utils/api';
 
 export interface ChatProps {
-  chat: ChatData;
+  chatId: string;
 }
-
-const _messages = Array.from({ length: 10 }, () => [
-  {
-    role: 'user',
-    content: 'hi'
-  },
-  {
-    role: 'assistant',
-    content: 'Hello! How can i assist you today!'
-  }
-]).flat();
 
 const useStyles = createStyles(theme => ({
   root: {
-    position: 'relative'
+    height: '100%'
   },
   messages: {
+    flex: 1,
+
     '> :nth-of-type(even)': {
       backgroundColor: theme.colors.dark[5]
     }
@@ -37,32 +27,39 @@ const useStyles = createStyles(theme => ({
   }
 }));
 
-export function Chat({ chat }: ChatProps) {
-  const { messages } = chat;
-
-  if (!isMessages(messages)) {
-    throw new Error('bad implementation');
-  }
-
+export function Chat({ chatId }: ChatProps) {
   const { classes } = useStyles();
   const [content, setContent] = useInputState('');
+  const apiContext = api.useContext();
+  const messages = api.message.all.useQuery({ chat: chatId });
+  const data = messages.data || [];
+
+  const sendMessage = api.message.send.useMutation({
+    onSuccess: resp => {
+      apiContext.message.all.setData({ chat: chatId }, m => m && [...m, resp]);
+    }
+  });
+  const onSubmit = (content: string) => {
+    sendMessage.mutate({ chat: chatId, content });
+    setContent('');
+  };
 
   useLayoutEffect(() => {
     window.scrollTo(0, document.documentElement.scrollHeight);
-  }, [chat.id]);
+  }, [chatId]);
 
   return (
-    <div className={classes.root}>
+    <Stack className={classes.root} spacing={0}>
       <div className={classes.messages}>
-        {_messages.map((m, idx) => (
+        {data.map((m, idx) => (
           <ChatMessage key={idx} message={m} />
         ))}
       </div>
       <Container className={classes.gradient} pos="sticky" size="100%" bottom="0" p="md" m="0">
         <Container>
-          <InputArea value={content} onChange={setContent} onSubmit={console.log} />
+          <InputArea value={content} onChange={setContent} onSubmit={onSubmit} />
         </Container>
       </Container>
-    </div>
+    </Stack>
   );
 }
