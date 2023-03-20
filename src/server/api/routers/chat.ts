@@ -3,13 +3,13 @@ import { prisma } from '@/server/db';
 import { TRPCError } from '@trpc/server';
 import { createTRPCRouter, protectedProcedure } from '../trpc';
 
-export const conversationRouter = createTRPCRouter({
+export const chatRouter = createTRPCRouter({
   all: protectedProcedure.query(() => {
-    return prisma.conversation.findMany({});
+    return prisma.chat.findMany({});
   }),
   getOne: protectedProcedure
     .input(z.object({ id: z.string() }))
-    .query(req => prisma.conversation.findFirst({ where: { id: req.input.id } })),
+    .query(req => prisma.chat.findFirst({ where: { id: req.input.id } })),
   create: protectedProcedure
     .input(
       z.object({
@@ -18,22 +18,22 @@ export const conversationRouter = createTRPCRouter({
       })
     )
     .mutation(async req => {
-      const conversation = await prisma.conversation.create({
+      const chat = await prisma.chat.create({
         data: { userId: req.ctx.session.user.id, mode: '', model: '', messages: [] }
       });
-      return conversation;
+      return chat;
     }),
   delete: protectedProcedure.input(z.object({ id: z.string() })).mutation(async req => {
     // TODO: make it better
-    const conversation = await prisma.conversation.findFirst({
+    const chat = await prisma.chat.findFirst({
       where: {
         id: req.input.id,
         userId: req.ctx.session.user.id
       }
     });
 
-    if (conversation) {
-      return prisma.conversation.delete({ where: { id: req.input.id } });
+    if (chat) {
+      return prisma.chat.delete({ where: { id: req.input.id } });
     }
 
     throw new TRPCError({ code: 'NOT_FOUND' });

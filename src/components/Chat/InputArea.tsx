@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import type { Conversation as ConversationData } from '@prisma/client';
+import type { Chat as ChatData } from '@prisma/client';
 import { ActionIcon, Textarea, type TextareaProps, createStyles } from '@mantine/core';
 import { IconBrandTelegram } from '@tabler/icons-react';
 
-export interface ConversationProps {
-  conversation: ConversationData;
+export interface ChatProps {
+  chat: ChatData;
 }
 
 export interface InputAreaProps extends Omit<TextareaProps, 'onSubmit' | 'value'> {

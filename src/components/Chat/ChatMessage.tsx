@@ -1,11 +1,11 @@
 import { type ChatGPTMessage } from '@/utils/api';
 import { Avatar, Container, Group } from '@mantine/core';
 
-export interface ConversationMessageProps {
+export interface ChatMessageProps {
   message: ChatGPTMessage;
 }
 
-export function ConversationMessage({ message }: ConversationMessageProps) {
+export function ChatMessage({ message }: ChatMessageProps) {
   return (
     <div>
       <Container>

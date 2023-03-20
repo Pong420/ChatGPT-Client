@@ -1,9 +1,9 @@
 import { api, isMessages } from '@/utils/api';
 import { Stack, createStyles, rem } from '@mantine/core';
 import { IconMessages } from '@tabler/icons-react';
-import type { Conversation as ConversationData } from '@prisma/client';
+import type { Chat as ChatData } from '@prisma/client';
 import { useNavigate } from '@/hooks/useNavigate';
-import { DeleteConveration, EditConversation } from './ConversationAction';
+import { DeleteChat, EditChat } from './ChatAction';
 
 const useStyles = createStyles(theme => ({
   list: {
@@ -46,7 +46,7 @@ const useStyles = createStyles(theme => ({
   }
 }));
 
-function ConversationItem({ conversation: c }: { conversation: ConversationData }) {
+function ChatItem({ chat: c }: { chat: ChatData }) {
   const messages = c.messages;
 
   if (!isMessages(messages)) {
@@ -54,8 +54,8 @@ function ConversationItem({ conversation: c }: { conversation: ConversationData 
   }
 
   const { classes } = useStyles();
-  const { router, pathname, active } = useNavigate(`/conversation/${c.id}`);
-  const title = messages?.[0]?.content || 'Conversation';
+  const { router, pathname, active } = useNavigate(`/chat/${c.id}`);
+  const title = messages?.[0]?.content || 'Chat';
 
   return (
     <div
@@ -69,21 +69,21 @@ function ConversationItem({ conversation: c }: { conversation: ConversationData 
         {title}
       </div>
 
-      <EditConversation conversation={c} />
-      <DeleteConveration conversation={c} />
+      <EditChat chat={c} />
+      <DeleteChat chat={c} />
     </div>
   );
 }
 
-export function ConversationList({}) {
+export function ChatList({}) {
   const { classes } = useStyles();
-  const conversations = api.conversation.all.useQuery();
-  const data = conversations.data || [];
+  const chats = api.chat.all.useQuery();
+  const data = chats.data || [];
 
   return (
     <Stack className={classes.list} spacing={5}>
       {data.map(c => (
-        <ConversationItem key={c.id} conversation={c} />
+        <ChatItem key={c.id} chat={c} />
       ))}
     </Stack>
   );

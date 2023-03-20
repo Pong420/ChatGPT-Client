@@ -1,12 +1,12 @@
 import { ActionIcon, type ActionIconProps } from '@mantine/core';
 import { type TablerIconsProps } from '@tabler/icons-react';
 
-export interface ConversationActionProps extends ActionIconProps {
+export interface ChatActionProps extends ActionIconProps {
   icon: React.ComponentType<TablerIconsProps>;
   onClick(): void;
 }
 
-export function ConversationAction({ icon: Icon, onClick, ...props }: ConversationActionProps) {
+export function ChatAction({ icon: Icon, onClick, ...props }: ChatActionProps) {
   return (
     <ActionIcon
       {...props}

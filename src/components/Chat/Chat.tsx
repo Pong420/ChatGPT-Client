@@ -1,13 +1,13 @@
 import { useLayoutEffect } from 'react';
 import { Container, createStyles } from '@mantine/core';
 import { useInputState } from '@mantine/hooks';
-import type { Conversation as ConversationData } from '@prisma/client';
+import type { Chat as ChatData } from '@prisma/client';
 import { isMessages } from '@/utils/api';
-import { ConversationMessage } from './ConversationMessage';
+import { ChatMessage } from './ChatMessage';
 import { InputArea } from './InputArea';
 
-export interface ConversationProps {
-  conversation: ConversationData;
+export interface ChatProps {
+  chat: ChatData;
 }
 
 const _messages = Array.from({ length: 10 }, () => [
@@ -37,8 +37,8 @@ const useStyles = createStyles(theme => ({
   }
 }));
 
-export function Conversation({ conversation }: ConversationProps) {
-  const { messages } = conversation;
+export function Chat({ chat }: ChatProps) {
+  const { messages } = chat;
 
   if (!isMessages(messages)) {
     throw new Error('bad implementation');
@@ -49,13 +49,13 @@ export function Conversation({ conversation }: ConversationProps) {
 
   useLayoutEffect(() => {
     window.scrollTo(0, document.documentElement.scrollHeight);
-  }, [conversation.id]);
+  }, [chat.id]);
 
   return (
     <div className={classes.root}>
       <div className={classes.messages}>
         {_messages.map((m, idx) => (
-          <ConversationMessage key={idx} message={m} />
+          <ChatMessage key={idx} message={m} />
         ))}
       </div>
       <Container className={classes.gradient} pos="sticky" size="100%" bottom="0" p="md" m="0">

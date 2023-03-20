@@ -2,8 +2,8 @@ import { useUser } from '@/hooks/useUser';
 import { createStyles, Navbar as MantineNavbar, Text, Group, rem } from '@mantine/core';
 import { IconSelector } from '@tabler/icons-react';
 import { UserButton } from './UserButton';
-import { ConversationList } from '../Conversation/ConversationList';
-import { CreateConversation } from '../Conversation/ConversationAction';
+import { ChatList } from '../Chat/ChatList';
+import { CreateChat } from '../Chat/ChatAction';
 
 const useStyles = createStyles(theme => ({
   section: {
@@ -40,13 +40,13 @@ export function Navbar() {
       <MantineNavbar.Section className={classes.section}>
         <Group className={classes.header} position="apart">
           <Text size="xs" weight={500} color="dimmed">
-            Conversations
+            Chats
           </Text>
 
-          <CreateConversation />
+          <CreateChat />
         </Group>
 
-        <ConversationList />
+        <ChatList />
       </MantineNavbar.Section>
     </MantineNavbar>
   );
