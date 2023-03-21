@@ -9,5 +9,3 @@ export const notifications = {
     this.show({ ...payload, message, color: 'red', icon: createElement(IconX, { size: '1.2rem' }) });
   }
 };
-
-// square-rounded-x-filled
