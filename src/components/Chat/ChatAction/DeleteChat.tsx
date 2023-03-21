@@ -10,14 +10,11 @@ export interface DeleteChatProps {
 export function DeleteChat({ chat }: DeleteChatProps) {
   const context = api.useContext();
   const deleteChat = api.chat.delete.useMutation({
-    onSuccess: chat =>
-      context.chat.all.setData(undefined, c => c && c.filter(c => c.id !== chat.id))
+    onSuccess: ({ id }) => {
+      context.chat.all.setData(undefined, c => c && c.filter(cc => cc.id !== id));
+    }
   });
   return (
-    <ChatAction
-      icon={IconTrash}
-      onClick={() => deleteChat.mutate({ id: chat.id })}
-      loading={deleteChat.isLoading}
-    />
+    <ChatAction icon={IconTrash} loading={deleteChat.isLoading} onClick={() => deleteChat.mutate({ id: chat.id })} />
   );
 }

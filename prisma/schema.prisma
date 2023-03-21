@@ -53,7 +53,7 @@ model User {
     accounts      Account[]
     sessions      Session[]
     password      String
-    chats          Chat[]
+    chats         Chat[]
 
     @@map("users")
 }
@@ -75,12 +75,16 @@ model Chat {
     model    String
     mode     String
     messages Message[]
+
+    @@map("chats")
 }
 
 model Message {
     id      String @id @default(auto()) @map("_id") @db.ObjectId
-    chat    Chat?  @relation(fields: [chatId], references: [id])
+    chat    Chat   @relation(fields: [chatId], references: [id])
     chatId  String @db.ObjectId
     role    String
     content String
+
+    @@map("messages")
 }

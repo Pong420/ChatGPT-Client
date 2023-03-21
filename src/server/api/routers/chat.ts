@@ -36,10 +36,9 @@ export const chatRouter = createTRPCRouter({
       }
     });
 
-    if (chat) {
-      return prisma.chat.delete({ where: { id: req.input.id } });
-    }
+    if (!chat) throw new TRPCError({ code: 'NOT_FOUND' });
 
-    throw new TRPCError({ code: 'NOT_FOUND' });
+    await prisma.message.deleteMany({ where: { chatId: req.input.id } });
+    return prisma.chat.delete({ where: { id: req.input.id } });
   })
 });
