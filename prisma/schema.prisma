@@ -54,6 +54,7 @@ model User {
     sessions      Session[]
     password      String
     chats         Chat[]
+    Usage         Usage[]
 
     @@map("users")
 }
@@ -81,10 +82,19 @@ model Chat {
 
 model Message {
     id      String @id @default(auto()) @map("_id") @db.ObjectId
-    chat    Chat   @relation(fields: [chatId], references: [id])
+    chat    Chat   @relation(fields: [chatId], references: [id], onDelete: Cascade)
     chatId  String @db.ObjectId
     role    String
     content String
 
     @@map("messages")
+}
+
+model Usage {
+    id     String @id @default(auto()) @map("_id") @db.ObjectId
+    userId String @db.ObjectId
+    user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+    data   Json
+
+    @@map("usages")
 }

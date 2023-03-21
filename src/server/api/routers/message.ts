@@ -32,8 +32,10 @@ export const messageRouter = createTRPCRouter({
       try {
         let reply: Message;
 
-        if (process.env.NODE_ENV === 'production') {
-          const completion = await openai.createChatCompletion({
+        const connectChatGPT = process.env.NODE_ENV === 'production';
+
+        if (connectChatGPT) {
+          const resp = await openai.createChatCompletion({
             model: chat.model,
             messages: [
               ...chat.messages.map(r => ({ role: r.role as ChatCompletionRequestMessageRoleEnum, content: r.content })),
@@ -41,7 +43,13 @@ export const messageRouter = createTRPCRouter({
             ]
           });
 
-          const choice = completion.data.choices[0];
+          const { usage, choices } = resp.data;
+
+          if (usage) {
+            await prisma.usage.create({ data: { data: { ...usage }, userId: req.ctx.session.user.id } });
+          }
+
+          const choice = choices[0];
           if (!choice || !choice.message?.content) throw new TRPCError({ code: 'BAD_REQUEST' });
 
           reply = await prisma.message.create({
