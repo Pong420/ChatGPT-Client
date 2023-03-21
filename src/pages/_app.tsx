@@ -8,7 +8,7 @@ import { Notifications } from '@mantine/notifications';
 import { type GetLayout } from '@/components/Layout/Layout';
 import { api } from '@/utils/api';
 import '@fontsource/noto-sans-hk';
-import '@fontsource/roboto';
+import '@fontsource/open-sans';
 import '@/styles/globals.css';
 
 export type NextPageWithLayout<P = Record<string, unknown>, IP = P> = NextPage<P, IP> & {
