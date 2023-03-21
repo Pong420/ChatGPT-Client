@@ -54,7 +54,7 @@ model User {
     sessions      Session[]
     password      String
     chats         Chat[]
-    Usage         Usage[]
+    usage         Usage[]
 
     @@map("users")
 }

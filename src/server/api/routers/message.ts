@@ -71,7 +71,7 @@ export const messageRouter = createTRPCRouter({
 
         return { question, reply };
       } catch (error) {
-        console.error(error);
+        console.error({ error });
         throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR' });
       }
     }),
