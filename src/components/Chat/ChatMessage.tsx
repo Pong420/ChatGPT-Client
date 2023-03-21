@@ -1,5 +1,7 @@
 import { Avatar, Container, Group, createStyles, keyframes, px } from '@mantine/core';
 import type { Message } from '@prisma/client';
+import { ChatCompletionRequestMessageRoleEnum } from '@/utils/openai';
+import ChatGPTIcon from '@/assets/chatgpt.svg';
 
 export interface ChatMessageProps {
   message?: Message;
@@ -25,6 +27,8 @@ const useStyles = createStyles(theme => {
   };
 });
 
+const chatgptIconSize = `1.4em`;
+
 export function ChatMessage({ message }: ChatMessageProps) {
   const { classes } = useStyles();
 
@@ -32,7 +36,13 @@ export function ChatMessage({ message }: ChatMessageProps) {
     <div>
       <Container>
         <Group py="lg" m="auto">
-          <Avatar />
+          {message?.role === ChatCompletionRequestMessageRoleEnum.User ? (
+            <Avatar />
+          ) : (
+            <Avatar>
+              <ChatGPTIcon width={chatgptIconSize} height={chatgptIconSize} />
+            </Avatar>
+          )}
           <div>{message ? message.content : <div className={classes.cursor} />}</div>
         </Group>
       </Container>

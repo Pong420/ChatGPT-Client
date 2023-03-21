@@ -27,13 +27,7 @@ export function UserButton({ image, name, icon, ...others }: UserButtonProps) {
   return (
     <UnstyledButton className={classes.user} {...others}>
       <Group spacing={10}>
-        <Avatar src={image} radius="xl">
-          {!image && (
-            <span style={{ fontSize: 24 }}>
-              <ChatGPTIcon />
-            </span>
-          )}
-        </Avatar>
+        <Avatar src={image} radius="xl" />
 
         <div style={{ flex: 1 }}>
           <Text size="sm" weight={500}>
