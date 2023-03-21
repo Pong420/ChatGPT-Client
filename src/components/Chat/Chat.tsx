@@ -1,8 +1,9 @@
-import { useLayoutEffect } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Container, Stack, createStyles } from '@mantine/core';
 import { useInputState } from '@mantine/hooks';
 import { nanoid } from 'nanoid';
 import { api } from '@/utils/api';
+import { ChatCompletionRequestMessageRoleEnum } from '@/utils/openai';
 import { ChatMessage } from './ChatMessage';
 import { InputArea } from './InputArea';
 
@@ -31,19 +32,33 @@ const useStyles = createStyles(theme => ({
 export function Chat({ chatId }: ChatProps) {
   const { classes } = useStyles();
   const [content, setContent] = useInputState('');
+
   const apiContext = api.useContext();
   const messages = api.message.all.useQuery({ chat: chatId });
   const data = messages.data || [];
+
+  const textInputRef = useRef<HTMLTextAreaElement>(null);
 
   const sendMessage = api.message.send.useMutation({
     onMutate: ({ content, chat, ref }) => {
       apiContext.message.all.setData(
         { chat: chatId },
-        m => m && [...m, { id: ref, role: 'user', content, chatId: chat }]
+        m => m && [...m, { id: ref, role: ChatCompletionRequestMessageRoleEnum.User, content, chatId: chat }]
       );
     },
-    onSuccess: (resp, { ref }) => {
-      apiContext.message.all.setData({ chat: chatId }, m => m && m.map(mm => (mm.id === ref ? resp : mm)));
+    onSuccess: ({ question, reply }, { ref }) => {
+      apiContext.message.all.setData(
+        { chat: chatId },
+        m => m && m.map(mm => (mm.id === ref ? question : mm)).concat(reply)
+      );
+      window.addEventListener(
+        'scroll',
+        function once() {
+          window.removeEventListener('scroll', once);
+          textInputRef.current?.focus();
+        },
+        { once: true }
+      );
     }
   });
   const onSubmit = (content: string) => {
@@ -52,7 +67,8 @@ export function Chat({ chatId }: ChatProps) {
   };
 
   useLayoutEffect(() => {
-    window.scrollTo(0, document.documentElement.scrollHeight);
+    // TODO: do not scroll to bottom if user not in bottom
+    window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' });
   }, [chatId, data.length]);
 
   return (
@@ -64,7 +80,13 @@ export function Chat({ chatId }: ChatProps) {
       </div>
       <Container className={classes.gradient} pos="sticky" size="100%" bottom="0" p="md" m="0">
         <Container>
-          <InputArea value={content} onChange={setContent} onSubmit={onSubmit} />
+          <InputArea
+            value={content}
+            onChange={setContent}
+            ref={textInputRef}
+            onSubmit={onSubmit}
+            disabled={sendMessage.isLoading}
+          />
         </Container>
       </Container>
     </Stack>

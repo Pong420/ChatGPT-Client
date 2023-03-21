@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { type Ref, forwardRef, useState } from 'react';
 import type { Chat as ChatData } from '@prisma/client';
 import { ActionIcon, Textarea, type TextareaProps, createStyles } from '@mantine/core';
 import { IconBrandTelegram } from '@tabler/icons-react';
@@ -10,6 +10,7 @@ export interface ChatProps {
 export interface InputAreaProps extends Omit<TextareaProps, 'onSubmit' | 'value'> {
   onSubmit?: (content: string) => void;
   value?: string;
+  loading?: boolean;
 }
 
 const useStyles = createStyles(theme => ({
@@ -21,7 +22,10 @@ const useStyles = createStyles(theme => ({
   }
 }));
 
-export function InputArea({ onSubmit, value = '', ...props }: InputAreaProps) {
+function InputAreaComponent(
+  { onSubmit, value = '', loading, ...props }: InputAreaProps,
+  ref: Ref<HTMLTextAreaElement>
+) {
   const { classes } = useStyles();
   const [keysDown, setkeysDown] = useState<string[]>([]);
 
@@ -31,7 +35,7 @@ export function InputArea({ onSubmit, value = '', ...props }: InputAreaProps) {
 
     if (event.key === 'Enter' && !keysDown.includes('Shift')) {
       event.preventDefault();
-      onSubmit?.(value);
+      _onSubmit();
     }
   };
 
@@ -40,11 +44,16 @@ export function InputArea({ onSubmit, value = '', ...props }: InputAreaProps) {
     setkeysDown(k => k.filter(kk => kk !== event.key));
   };
 
+  const _onSubmit = () => {
+    if (loading) return;
+    onSubmit?.(value);
+  };
+
   return (
     <form
       onSubmit={event => {
         event.preventDefault();
-        onSubmit?.(value);
+        _onSubmit();
       }}
     >
       <Textarea
@@ -57,8 +66,9 @@ export function InputArea({ onSubmit, value = '', ...props }: InputAreaProps) {
         value={value}
         onKeyUp={onKeyUp}
         onKeyDown={onKeyDown}
+        ref={ref}
         rightSection={
-          <ActionIcon className={classes.send} color="dark" mb={8} mr={8} onClick={() => onSubmit?.(value)}>
+          <ActionIcon className={classes.send} color="dark" mb={8} mr={8} onClick={_onSubmit} loading={loading}>
             <IconBrandTelegram size={18} />
           </ActionIcon>
         }
@@ -66,3 +76,5 @@ export function InputArea({ onSubmit, value = '', ...props }: InputAreaProps) {
     </form>
   );
 }
+
+export const InputArea = forwardRef(InputAreaComponent);
