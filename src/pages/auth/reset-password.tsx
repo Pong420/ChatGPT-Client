@@ -20,7 +20,7 @@ export default function ResetPasswordPage() {
   );
 
   return (
-    <Center mx="auto" h="100%" bg="#f9f9f9">
+    <Center mx="auto" h="100%">
       <Paper withBorder shadow="md" w="100%" p={30} maw={420} radius="md">
         <Group spacing={5}>
           <ChatGPTIcon />
