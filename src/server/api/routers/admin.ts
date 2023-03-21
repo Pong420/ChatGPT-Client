@@ -23,6 +23,7 @@ export const adminhRouter = createTRPCRouter({
       return user;
     }),
   deleteUser: developmentProcedure.input(z.object({ id: z.string() })).mutation(async req => {
+    await prisma.chat.deleteMany({});
     const { password, ...user } = await prisma.user.delete({ where: { id: req.input.id } });
     return user;
   })
