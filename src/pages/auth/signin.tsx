@@ -1,3 +1,5 @@
+import router from 'next/router';
+import { signIn } from 'next-auth/react';
 import { useForm } from '@mantine/form';
 import {
   TextInput,
@@ -12,7 +14,7 @@ import {
   Center,
   type ButtonProps
 } from '@mantine/core';
-import { signIn } from 'next-auth/react';
+import { notifications } from '@/utils/notifications';
 import { IconBrandGoogle, IconBrandGithub, IconAt, IconLock } from '@tabler/icons-react';
 import ChatGPTIcon from '@/assets/chatgpt.svg';
 
@@ -49,9 +51,16 @@ export default function LoginPage() {
     validate: {}
   });
 
-  const onSubmit = form.onSubmit(
-    values => void signIn('credentials', { ...values, callbackUrl: 'http://localhost:3000/' })
-  );
+  const handleSignIn = async (values: typeof form.values) => {
+    const resp = await signIn('credentials', { ...values, redirect: false, callbackUrl: window.location.origin });
+    if (resp?.ok) {
+      await router.push('/');
+    } else {
+      notifications.error(resp?.error || 'Error');
+    }
+  };
+
+  const onSubmit = form.onSubmit(values => void handleSignIn(values));
 
   return (
     <Center mx="auto" h="100%">

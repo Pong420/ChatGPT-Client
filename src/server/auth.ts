@@ -4,6 +4,7 @@ import { default as bcrypt } from 'bcrypt';
 import { PrismaAdapter } from '@next-auth/prisma-adapter';
 import { prisma } from '@/server/db';
 import CredentialsProvider from 'next-auth/providers/credentials';
+import { TRPCError } from '@trpc/server';
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
@@ -85,7 +86,9 @@ export const authOptions: NextAuthOptions = {
 
         const user = await prisma.user.findUnique({ where: { email } });
 
-        if (!user || !user.password) return null;
+        const authError = new TRPCError({ code: 'BAD_REQUEST', message: 'Invalid email or password' });
+
+        if (!user || !user.password) throw authError;
 
         const isPasswordValid = await bcrypt.compare(password, user.password);
 
@@ -94,7 +97,7 @@ export const authOptions: NextAuthOptions = {
           return user;
         } else {
           // If you return null then an error will be displayed advising the user to check their details.
-          return null;
+          throw authError;
           // You can also Reject this callback with an Error thus the user will be sent to the error page with the error message as a query parameter
         }
       }

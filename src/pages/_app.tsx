@@ -4,6 +4,7 @@ import { type AppProps } from 'next/app';
 import { type Session } from 'next-auth';
 import { SessionProvider } from 'next-auth/react';
 import { MantineProvider } from '@mantine/core';
+import { Notifications } from '@mantine/notifications';
 import { type GetLayout } from '@/components/Layout/Layout';
 import { api } from '@/utils/api';
 import '@fontsource/noto-sans-hk';
@@ -43,24 +44,16 @@ const MyApp = ({ Component, pageProps: { session, ...pageProps } }: MyAppProps) 
               },
 
               body: {
-                // Roboto, Noto Sans HK
                 ...(theme.fn.fontStyles() as Record<string, string>),
                 backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[4] : theme.colors.gray[0],
                 color: theme.colorScheme === 'dark' ? theme.colors.dark[0] : theme.black,
                 lineHeight: theme.lineHeight
-              },
-
-              '.your-class': {
-                backgroundColor: 'red'
-              },
-
-              '#your-id > [data-active]': {
-                backgroundColor: 'pink'
               }
             })
           }}
         >
           {getLayout(<Component {...pageProps} />)}
+          <Notifications position="top-right" />
         </MantineProvider>
       </SessionProvider>
     </>
