@@ -12,7 +12,3 @@ const configuration = new Configuration({
 export const openai = new OpenAIApi(configuration);
 
 export { ChatCompletionRequestMessage, ChatCompletionRequestMessageRoleEnum };
-// export const MessageRole = ChatCompletionRequestMessageRoleEnum;
-// export type MessageRole = typeof MessageRole;
-
-// export type ChatGPTMessage = ChatCompletionRequestMessage;

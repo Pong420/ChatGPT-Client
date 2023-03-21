@@ -1,15 +1,15 @@
-import { type ChatGPTMessage } from '@/utils/api';
 import { Avatar, Container, Group } from '@mantine/core';
+import type { Message } from '@prisma/client';
 
 export interface ChatMessageProps {
-  message: ChatGPTMessage;
+  message: Message;
 }
 
 export function ChatMessage({ message }: ChatMessageProps) {
   return (
     <div>
       <Container>
-        <Group py="lg" m="auto" noWrap maw={1000}>
+        <Group py="lg" m="auto">
           <Avatar />
           <div>{message.content}</div>
         </Group>

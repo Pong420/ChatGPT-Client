@@ -1,16 +1,13 @@
-import { type Ref, forwardRef, useState } from 'react';
-import type { Chat as ChatData } from '@prisma/client';
-import { ActionIcon, Textarea, type TextareaProps, createStyles } from '@mantine/core';
+import { type Ref, forwardRef, useState, memo } from 'react';
+import { nanoid } from 'nanoid';
+import { ActionIcon, Textarea, createStyles } from '@mantine/core';
+import { useInputState } from '@mantine/hooks';
 import { IconBrandTelegram } from '@tabler/icons-react';
+import { api } from '@/utils/api';
+import { ChatCompletionRequestMessageRoleEnum } from '@/utils/openai';
 
-export interface ChatProps {
-  chat: ChatData;
-}
-
-export interface InputAreaProps extends Omit<TextareaProps, 'onSubmit' | 'value'> {
-  onSubmit?: (content: string) => void;
-  value?: string;
-  loading?: boolean;
+export interface InputAreaProps {
+  chatId: string;
 }
 
 const useStyles = createStyles(theme => ({
@@ -22,12 +19,29 @@ const useStyles = createStyles(theme => ({
   }
 }));
 
-function InputAreaComponent(
-  { onSubmit, value = '', loading, ...props }: InputAreaProps,
-  ref: Ref<HTMLTextAreaElement>
-) {
+function InputAreaComponent({ chatId, ...props }: InputAreaProps, ref: Ref<HTMLTextAreaElement>) {
   const { classes } = useStyles();
+  const [content, setContent] = useInputState('');
   const [keysDown, setkeysDown] = useState<string[]>([]);
+
+  const context = api.useContext();
+
+  const sendMessage = api.message.send.useMutation({
+    onMutate: ({ content, chat, ref }) => {
+      // add user message to list
+      context.message.all.setData(
+        { chat: chatId },
+        m => m && [...m, { id: ref, role: ChatCompletionRequestMessageRoleEnum.User, content, chatId: chat }]
+      );
+    },
+    onSuccess: ({ question, reply }, { ref }) => {
+      // update user message and add chat gpt reply
+      context.message.all.setData(
+        { chat: chatId },
+        m => m && m.map(mm => (mm.id === ref ? question : mm)).concat(reply)
+      );
+    }
+  });
 
   const onKeyDown = (event: React.KeyboardEvent) => {
     if (event.nativeEvent.isComposing) return;
@@ -45,36 +59,38 @@ function InputAreaComponent(
   };
 
   const _onSubmit = () => {
-    if (loading) return;
-    onSubmit?.(value);
+    if (sendMessage.isLoading || !content) return;
+    sendMessage.mutate({ chat: chatId, content, ref: nanoid() });
+    setContent('');
   };
 
   return (
-    <form
-      onSubmit={event => {
-        event.preventDefault();
-        _onSubmit();
-      }}
-    >
-      <Textarea
-        {...props}
-        classNames={{ input: classes.input }}
-        autosize
-        autoFocus
-        minRows={1}
-        maxRows={6}
-        value={value}
-        onKeyUp={onKeyUp}
-        onKeyDown={onKeyDown}
-        ref={ref}
-        rightSection={
-          <ActionIcon className={classes.send} color="dark" mb={8} mr={8} onClick={_onSubmit} loading={loading}>
-            <IconBrandTelegram size={18} />
-          </ActionIcon>
-        }
-      />
-    </form>
+    <Textarea
+      {...props}
+      classNames={{ input: classes.input }}
+      autosize
+      autoFocus
+      minRows={1}
+      maxRows={6}
+      value={content}
+      onChange={setContent}
+      onKeyUp={onKeyUp}
+      onKeyDown={onKeyDown}
+      ref={ref}
+      rightSection={
+        <ActionIcon
+          className={classes.send}
+          color="dark"
+          mb={8}
+          mr={8}
+          onClick={_onSubmit}
+          loading={sendMessage.isLoading}
+        >
+          <IconBrandTelegram size={18} />
+        </ActionIcon>
+      }
+    />
   );
 }
 
-export const InputArea = forwardRef(InputAreaComponent);
+export const InputArea = memo(forwardRef(InputAreaComponent));
