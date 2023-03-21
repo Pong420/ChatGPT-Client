@@ -1,4 +1,4 @@
-import { type Ref, forwardRef, useState, memo } from 'react';
+import { type Ref, forwardRef, useState } from 'react';
 import { nanoid } from 'nanoid';
 import { ActionIcon, Textarea, createStyles } from '@mantine/core';
 import { useInputState } from '@mantine/hooks';
@@ -34,6 +34,7 @@ function InputAreaComponent({ chatId, onLoad, ...props }: InputAreaProps, ref: R
         { chat: chatId },
         m => m && [...m, { id: ref, role: ChatCompletionRequestMessageRoleEnum.User, content, chatId: chat }]
       );
+      onLoad?.(true);
     },
     onSuccess: ({ question, reply }, { ref }) => {
       // update user message and add chat gpt reply
@@ -41,6 +42,7 @@ function InputAreaComponent({ chatId, onLoad, ...props }: InputAreaProps, ref: R
         { chat: chatId },
         m => m && m.map(mm => (mm.id === ref ? question : mm)).concat(reply)
       );
+      onLoad?.(false);
     }
   });
 
@@ -94,4 +96,4 @@ function InputAreaComponent({ chatId, onLoad, ...props }: InputAreaProps, ref: R
   );
 }
 
-export const InputArea = memo(forwardRef(InputAreaComponent));
+export const InputArea = forwardRef(InputAreaComponent);
