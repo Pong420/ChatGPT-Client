@@ -27,10 +27,8 @@ export const messageRouter = createTRPCRouter({
 
       const message = { role: ChatCompletionRequestMessageRoleEnum.User, content: req.input.content };
 
-      const question = await prisma.message.create({ data: { ...message, chatId: chat.id } });
-
       try {
-        let reply: Message;
+        let replyPayload: Omit<Message, 'id'>;
 
         const connectChatGPT = process.env.NODE_ENV === 'production';
 
@@ -50,24 +48,23 @@ export const messageRouter = createTRPCRouter({
           }
 
           const choice = choices[0];
-          if (!choice || !choice.message?.content) throw new TRPCError({ code: 'BAD_REQUEST' });
+          if (!choice || !choice.message?.content) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR' });
 
-          reply = await prisma.message.create({
-            data: {
-              role: ChatCompletionRequestMessageRoleEnum.Assistant,
-              content: choice.message.content,
-              chatId: chat.id
-            }
-          });
+          replyPayload = {
+            role: ChatCompletionRequestMessageRoleEnum.Assistant,
+            content: choice.message.content,
+            chatId: chat.id
+          };
         } else {
-          reply = await prisma.message.create({
-            data: {
-              role: ChatCompletionRequestMessageRoleEnum.Assistant,
-              content: 'Hello! How can I assist you today?',
-              chatId: chat.id
-            }
-          });
+          replyPayload = {
+            role: ChatCompletionRequestMessageRoleEnum.Assistant,
+            content: 'Hello! How can I assist you today?',
+            chatId: chat.id
+          };
         }
+
+        const question = await prisma.message.create({ data: { ...message, chatId: chat.id } });
+        const reply = await prisma.message.create({ data: replyPayload });
 
         return { question, reply };
       } catch (error) {
