@@ -1,8 +1,9 @@
 import { z } from 'zod';
-import { prisma } from '@/server/db';
+import type { Message } from '@prisma/client';
 import { TRPCError } from '@trpc/server';
-import { createTRPCRouter, protectedProcedure } from '../trpc';
+import { prisma } from '@/server/db';
 import { ChatCompletionRequestMessageRoleEnum, openai } from '@/utils/openai';
+import { createTRPCRouter, protectedProcedure } from '../trpc';
 
 export const messageRouter = createTRPCRouter({
   all: protectedProcedure.input(z.object({ chat: z.string() })).query(async req => {
@@ -29,32 +30,36 @@ export const messageRouter = createTRPCRouter({
       const question = await prisma.message.create({ data: { ...message, chatId: chat.id } });
 
       try {
-        // const completion = await openai.createChatCompletion({
-        //   model: chat.model,
-        //   messages: [
-        //     ...chat.messages.map(r => ({ role: r.role as ChatCompletionRequestMessageRoleEnum, content: r.content })),
-        //     message
-        //   ]
-        // });
+        let reply: Message;
 
-        // const choice = completion.data.choices[0];
-        // if (!choice || !choice.message?.content) throw new TRPCError({ code: 'BAD_REQUEST' });
+        if (process.env.NODE_ENV === 'production') {
+          const completion = await openai.createChatCompletion({
+            model: chat.model,
+            messages: [
+              ...chat.messages.map(r => ({ role: r.role as ChatCompletionRequestMessageRoleEnum, content: r.content })),
+              message
+            ]
+          });
 
-        // const reply = await prisma.message.create({
-        //   data: {
-        //     role: ChatCompletionRequestMessageRoleEnum.Assistant,
-        //     content: choice.message.content,
-        //     chatId: chat.id
-        //   }
-        // });
+          const choice = completion.data.choices[0];
+          if (!choice || !choice.message?.content) throw new TRPCError({ code: 'BAD_REQUEST' });
 
-        const reply = await prisma.message.create({
-          data: {
-            role: ChatCompletionRequestMessageRoleEnum.Assistant,
-            content: 'Hello! How can I assist you today?',
-            chatId: chat.id
-          }
-        });
+          reply = await prisma.message.create({
+            data: {
+              role: ChatCompletionRequestMessageRoleEnum.Assistant,
+              content: choice.message.content,
+              chatId: chat.id
+            }
+          });
+        } else {
+          reply = await prisma.message.create({
+            data: {
+              role: ChatCompletionRequestMessageRoleEnum.Assistant,
+              content: 'Hello! How can I assist you today?',
+              chatId: chat.id
+            }
+          });
+        }
 
         return { question, reply };
       } catch (error) {
