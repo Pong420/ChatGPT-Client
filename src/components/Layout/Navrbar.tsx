@@ -4,6 +4,7 @@ import { IconSelector } from '@tabler/icons-react';
 import { UserButton } from './UserButton';
 import { ChatList } from '../Chat/ChatList';
 import { CreateChat } from '../Chat/ChatAction';
+import pkg from '../../../package.json';
 
 const useStyles = createStyles(theme => ({
   section: {
@@ -37,7 +38,7 @@ export function Navbar() {
         <UserButton name={user.name || ''} icon={<IconSelector size="0.9rem" stroke={1.5} />} />
       </MantineNavbar.Section>
 
-      <MantineNavbar.Section className={classes.section}>
+      <MantineNavbar.Section className={classes.section} grow>
         <Group className={classes.header} position="apart">
           <Text size="xs" weight={500} color="dimmed">
             Chats
@@ -47,6 +48,13 @@ export function Navbar() {
         </Group>
 
         <ChatList />
+      </MantineNavbar.Section>
+
+      <MantineNavbar.Section>
+        <Group position="apart">
+          <Text>Version</Text>
+          <Text>{pkg.version}</Text>
+        </Group>
       </MantineNavbar.Section>
     </MantineNavbar>
   );
