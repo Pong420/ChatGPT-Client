@@ -68,7 +68,7 @@ function ChatItem({ chat: c }: { chat: ChatData }) {
   );
 }
 
-export function ChatList({}) {
+export function ChatList() {
   const { classes } = useStyles();
   const chats = api.chat.all.useQuery();
   const data = chats.data || [];

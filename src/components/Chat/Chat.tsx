@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { Container, Stack, createStyles } from '@mantine/core';
 import { api } from '@/utils/api';
+import { ChatCompletionRequestMessageRoleEnum } from '@/utils/openai';
 import { ChatMessage } from './ChatMessage';
 import { InputArea } from './InputArea';
 
@@ -50,6 +51,7 @@ export function Chat({ chatId }: ChatProps) {
         {data.map((m, idx) => (
           <ChatMessage key={idx} message={m} />
         ))}
+        {data.slice(-1)[0]?.role === ChatCompletionRequestMessageRoleEnum.User && <ChatMessage />}
       </div>
       <Container className={classes.gradient} pos="sticky" size="100%" bottom="0" p="md" m="0">
         <Container>
