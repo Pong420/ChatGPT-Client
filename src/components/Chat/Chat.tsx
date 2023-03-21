@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Container, Stack, createStyles } from '@mantine/core';
 import { api } from '@/utils/api';
 import { ChatCompletionRequestMessageRoleEnum } from '@/utils/openai';
@@ -31,6 +31,7 @@ const useStyles = createStyles(theme => ({
 
 export function Chat({ chatId }: ChatProps) {
   const { classes } = useStyles();
+  const [waitForReply, setWaitForReply] = useState(false);
 
   const messages = api.message.all.useQuery({ chat: chatId });
   const data = messages.data || [];
@@ -51,11 +52,11 @@ export function Chat({ chatId }: ChatProps) {
         {data.map((m, idx) => (
           <ChatMessage key={idx} message={m} />
         ))}
-        {data.slice(-1)[0]?.role === ChatCompletionRequestMessageRoleEnum.User && <ChatMessage />}
+        {waitForReply && <ChatMessage />}
       </div>
       <Container className={classes.gradient} pos="sticky" size="100%" bottom="0" p="md" m="0">
         <Container>
-          <InputArea chatId={chatId} />
+          <InputArea chatId={chatId} onLoad={setWaitForReply} />
         </Container>
       </Container>
     </Stack>

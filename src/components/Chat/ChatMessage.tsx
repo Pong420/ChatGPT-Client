@@ -35,7 +35,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
   return (
     <div>
       <Container>
-        <Group py="lg" m="auto">
+        <Group py="lg" m="auto" noWrap>
           {message?.role === ChatCompletionRequestMessageRoleEnum.User ? (
             <Avatar />
           ) : (

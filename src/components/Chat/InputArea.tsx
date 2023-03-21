@@ -8,6 +8,7 @@ import { ChatCompletionRequestMessageRoleEnum } from '@/utils/openai';
 
 export interface InputAreaProps {
   chatId: string;
+  onLoad?: (isLoading: boolean) => void;
 }
 
 const useStyles = createStyles(theme => ({
@@ -19,7 +20,7 @@ const useStyles = createStyles(theme => ({
   }
 }));
 
-function InputAreaComponent({ chatId, ...props }: InputAreaProps, ref: Ref<HTMLTextAreaElement>) {
+function InputAreaComponent({ chatId, onLoad, ...props }: InputAreaProps, ref: Ref<HTMLTextAreaElement>) {
   const { classes } = useStyles();
   const [content, setContent] = useInputState('');
   const [keysDown, setkeysDown] = useState<string[]>([]);
