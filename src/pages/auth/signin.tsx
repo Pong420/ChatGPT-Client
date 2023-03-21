@@ -1,4 +1,5 @@
-import router from 'next/router';
+import { useState } from 'react';
+import { default as router } from 'next/router';
 import { signIn } from 'next-auth/react';
 import { useForm } from '@mantine/form';
 import {
@@ -41,6 +42,8 @@ function SocialButton(props: ButtonProps) {
 }
 
 export default function LoginPage() {
+  const [loading, setLoading] = useState(false);
+
   const form = useForm({
     initialValues: {
       email: '',
@@ -52,12 +55,14 @@ export default function LoginPage() {
   });
 
   const handleSignIn = async (values: typeof form.values) => {
+    setLoading(true);
     const resp = await signIn('credentials', { ...values, redirect: false, callbackUrl: window.location.origin });
     if (resp?.ok) {
       await router.push('/');
     } else {
       notifications.error(resp?.error || 'Error');
     }
+    setLoading(false);
   };
 
   const onSubmit = form.onSubmit(values => void handleSignIn(values));
@@ -116,7 +121,9 @@ export default function LoginPage() {
 
             <Checkbox label="Remember me" />
 
-            <Button type="submit">Sign In</Button>
+            <Button type="submit" loading={loading}>
+              Sign In
+            </Button>
           </Stack>
         </form>
       </Paper>
