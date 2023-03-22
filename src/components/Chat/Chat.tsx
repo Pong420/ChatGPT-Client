@@ -53,7 +53,7 @@ export function Chat({ chatId }: ChatProps) {
             {data.map((m, idx) => (
               <ChatMessage key={idx} message={m} />
             ))}
-            {waitForReply && <ChatMessage />}
+            {messages.isLoading ? null : waitForReply && <ChatMessage />}
           </>
         ) : (
           <Center h="100%">
