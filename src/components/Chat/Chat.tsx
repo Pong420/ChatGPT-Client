@@ -32,7 +32,7 @@ export function Chat({ chatId }: ChatProps) {
   const { classes } = useStyles();
   const [waitForReply, setWaitForReply] = useState(false);
 
-  const messages = api.message.all.useQuery({ chat: chatId });
+  const messages = api.message.all.useQuery({ chat: chatId }, { refetchIntervalInBackground: false });
   const data = messages.data || [];
 
   useEffect(() => {
