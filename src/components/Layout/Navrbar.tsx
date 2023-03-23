@@ -4,7 +4,6 @@ import { IconSelector } from '@tabler/icons-react';
 import { UserButton } from './UserButton';
 import { ChatList } from '../Chat/ChatList';
 import { CreateChat } from '../Chat/ChatAction';
-import pkg from '../../../package.json';
 
 const useStyles = createStyles(theme => ({
   section: {
@@ -48,13 +47,6 @@ export function Navbar() {
         </Group>
 
         <ChatList />
-      </MantineNavbar.Section>
-
-      <MantineNavbar.Section>
-        <Group position="apart">
-          <Text>Version</Text>
-          <Text>{pkg.version}</Text>
-        </Group>
       </MantineNavbar.Section>
     </MantineNavbar>
   );
