@@ -1,4 +1,4 @@
-import { Fragment, useMemo } from 'react';
+import { useMemo } from 'react';
 import { remark } from 'remark';
 import type { Content } from 'mdast';
 import { Avatar, Container, Group, Code, createStyles, keyframes, px } from '@mantine/core';
@@ -30,7 +30,8 @@ const useStyles = createStyles(theme => {
     },
     message: {
       overflow: 'hidden',
-      flex: 1
+      flex: '0 1 auto',
+      width: `100%`
     }
   };
 });
@@ -47,7 +48,7 @@ export function astToRectNode(payload: Content | Content[], data: React.ReactNod
 
     if (payload.type === 'code') {
       data.push(
-        <Prism key={key} my="sm" language={payload.lang as PrismProps['language']}>
+        <Prism key={Math.random()} my="sm" language={payload.lang as PrismProps['language']}>
           {payload.value}
         </Prism>
       );
@@ -58,7 +59,7 @@ export function astToRectNode(payload: Content | Content[], data: React.ReactNod
         </Code>
       );
     } else {
-      data.push(<Fragment key={key}>{payload.value}</Fragment>);
+      data.push(<span key={key}>{payload.value}</span>);
     }
   }
   return data;
