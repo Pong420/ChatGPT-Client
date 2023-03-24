@@ -6,6 +6,9 @@
 
 /** @type {import("next").NextConfig} */
 const config = {
+  // https://github.com/vercel/next.js/tree/canary/examples/with-docker#in-existing-projects
+  output: 'standalone',
+
   reactStrictMode: true,
 
   /**

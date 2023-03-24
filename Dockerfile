@@ -1,53 +1,54 @@
-# refrence:
-# https://blog.logrocket.com/containerized-development-nestjs-docker/
+FROM node:18-alpine AS base
 
-FROM node:18.12.1-alpine as development
+# Install dependencies only when needed
+FROM base AS deps
+# Check https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine to understand why libc6-compat might be needed.
+RUN apk add --no-cache libc6-compat
+WORKDIR /app
 
-WORKDIR /srv/
+# Install dependencies based on the preferred package manager
+COPY package.json package-lock.json* prisma ./
+RUN \
+  if [ -f package-lock.json ]; then npm ci; \
+  else echo "Lockfile not found." && exit 1; \
+  fi
 
+
+# Rebuild the source code only when needed
+FROM base AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Remove husky install since git is not existed in the image
-# RUN node scripts/set-script prepare ''
-RUN npm install
-
-ARG NODE_ENV=production
-ENV NODE_ENV=${NODE_ENV}
-
+# Next.js collects completely anonymous telemetry data about general usage.
+# Learn more here: https://nextjs.org/telemetry
+# Uncomment the following line in case you want to disable telemetry during the build.
 ENV NEXT_TELEMETRY_DISABLED 1
 
 RUN npm run build
 
-# -------------------- break point --------------------
+# Production image, copy all the files and run next
+FROM base AS runner
+WORKDIR /app
 
-FROM node:14.17.4-alpine as production
-
-WORKDIR /srv/
-
-COPY package.json ./
-COPY package-lock.json ./
-COPY next.config.mjs ./
-COPY src/env.mjs ./src/
-COPY public ./public
-COPY prisma ./prisma
-
-COPY --from=development /srv/node_modules ./node_modules
-COPY --from=development /srv/.next ./.next
-
-# RUN node scripts/set-script prepare ''
-RUN npm ci
-
-ARG NODE_ENV=production
-ENV NODE_ENV=${NODE_ENV}
-
+ENV NODE_ENV production
+# Uncomment the following line in case you want to disable telemetry during runtime.
 ENV NEXT_TELEMETRY_DISABLED 1
 
-# # install node-prune (https://github.com/tj/node-prune)
-# RUN apk --no-cache add curl bash
-# RUN npx node-prune
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
 
-WORKDIR /srv/
+COPY --from=builder /app/public ./public
+
+# Automatically leverage output traces to reduce image size
+# https://nextjs.org/docs/advanced-features/output-file-tracing
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
+USER nextjs
 
 EXPOSE 3000
 
-CMD ["npm", "start"]
+ENV PORT 3000
+
+CMD ["node", "server.js"]
