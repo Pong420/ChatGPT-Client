@@ -86,11 +86,11 @@ export default function LoginPage() {
         </Text>
 
         <Group grow spacing={5} mt={10}>
-          <SocialButton>
+          <SocialButton disabled={loading}>
             <IconBrandGoogle />
           </SocialButton>
 
-          <SocialButton>
+          <SocialButton disabled={loading}>
             <IconBrandGithub />
           </SocialButton>
         </Group>
@@ -107,6 +107,7 @@ export default function LoginPage() {
               placeholder="Email"
               {...form.getInputProps('email')}
               error={form.errors.email && 'Invalid Email'}
+              disabled={loading}
             />
 
             <PasswordInput
@@ -117,6 +118,7 @@ export default function LoginPage() {
               placeholder="Your password"
               {...form.getInputProps('password')}
               error={form.errors.password && 'Password should include at least 6 characters'}
+              disabled={loading}
             />
 
             <Checkbox label="Remember me" />
