@@ -19,7 +19,7 @@ export function MenuModal({ title, children, icon: Icon = IconMenu2, ...props }:
 
   return (
     <Modal.Root radius={6} size="sm" centered {...props}>
-      <Modal.Overlay zIndex={201} />
+      <Modal.Overlay zIndex={201} opacity={0.5} />
       <Modal.Content bg={primaryColor}>
         <Modal.Header bg={secondaryColor}>
           <Modal.Title>

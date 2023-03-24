@@ -1,4 +1,3 @@
-import { Button } from '@mantine/core';
 import { MenuModal, MenuModalSection, type MenuModalProps, MenuModalRow } from '../MenuModal';
 
 export function AccountMenu(props: MenuModalProps) {
@@ -13,9 +12,6 @@ export function AccountMenu(props: MenuModalProps) {
         <MenuModalRow title="Edit Profile" onClick={console.log} />
         <MenuModalRow title="Reset Password" onClick={console.log} />
       </MenuModalSection>
-      <Button color="red" mx="md" mt="lg" mb="xs">
-        Sign out
-      </Button>
     </MenuModal>
   );
 }
