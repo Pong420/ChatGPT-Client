@@ -1,6 +1,6 @@
 ## ChatGTP Client
 
-![screenshot](./.docs/screenshot.png)
+![screenshot](./.github/docs/screenshot.png)
 
 ### Getting started
 
