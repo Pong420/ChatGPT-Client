@@ -8,37 +8,43 @@ WORKDIR /srv/
 COPY . .
 
 # Remove husky install since git is not existed in the image
-RUN node scripts/set-script prepare ''
-RUN npm ci
+# RUN node scripts/set-script prepare ''
+RUN npm install
 
 ARG NODE_ENV=production
 ENV NODE_ENV=${NODE_ENV}
 
-RUN npm run db
+ENV NEXT_TELEMETRY_DISABLED 1
+
 RUN npm run build
 
 # -------------------- break point --------------------
 
 FROM node:14.17.4-alpine as production
 
-ARG NODE_ENV=production
-ENV NODE_ENV=${NODE_ENV}
-
 WORKDIR /srv/
 
 COPY package.json ./
+COPY package-lock.json ./
+COPY next.config.mjs ./
+COPY src/env.mjs ./src/
+COPY public ./public
+COPY prisma ./prisma
 
-# Just copy the app directory and install the dependencies seems a good idea
-# But I am afraid that the lock file will not work. So We keep the yarn workspaces structure
+COPY --from=development /srv/node_modules ./node_modules
 COPY --from=development /srv/.next ./.next
 
-RUN node scripts/set-script prepare ''
-RUN npm ci --omit=dev
+# RUN node scripts/set-script prepare ''
+RUN npm ci
 
-# install node-prune (https://github.com/tj/node-prune)
-RUN apk --no-cache add curl bash
-RUN npx node-prune
-RUN npx node-prune app/node_modules
+ARG NODE_ENV=production
+ENV NODE_ENV=${NODE_ENV}
+
+ENV NEXT_TELEMETRY_DISABLED 1
+
+# # install node-prune (https://github.com/tj/node-prune)
+# RUN apk --no-cache add curl bash
+# RUN npx node-prune
 
 WORKDIR /srv/
 

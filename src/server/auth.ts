@@ -1,9 +1,9 @@
 import { type GetServerSidePropsContext } from 'next';
 import { getServerSession, type NextAuthOptions, type DefaultSession } from 'next-auth';
+import { default as CredentialsProvider } from 'next-auth/providers/credentials';
 import { default as bcrypt } from 'bcrypt';
 import { PrismaAdapter } from '@next-auth/prisma-adapter';
 import { prisma } from '@/server/db';
-import CredentialsProvider from 'next-auth/providers/credentials';
 import { TRPCError } from '@trpc/server';
 
 /**
