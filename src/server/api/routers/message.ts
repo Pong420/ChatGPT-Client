@@ -30,7 +30,7 @@ export const messageRouter = createTRPCRouter({
       try {
         let replyPayload: Omit<Message, 'id'>;
 
-        const connectChatGPT = process.env.NODE_ENV === 'production';
+        const connectChatGPT = true || process.env.NODE_ENV === 'production';
 
         if (connectChatGPT) {
           const resp = await openai.createChatCompletion({
