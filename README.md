@@ -2,34 +2,45 @@
 
 ![screenshot](./.github/docs/screenshot.png)
 
-### Getting started
+### Prerequisites
 
-1. If you do not have MongoDB, you can start with docker-compose
+- MongoDB
+  - Using [MongoDB Atlas](https://www.mongodb.com/)
+  - Or run `docker-compose up -d` to start a MongoDB server locally
+- OpenAI API key
 
-   ```
-   docker-compose up -d
-   ```
+<!-- ### Start with the Docker image
 
-2. Copy and rename the `.env.example` to `.env`. Assign your OpenAI API key to `OPENAI_API_KEY`. If you are using your own MongoDB, remember to edit `DATABASE_URL`.
 
-3. Install packages and setup
+Replace below environment variables and run
+
+```
+docker run \
+  --name chatgpt \
+  -p 3000:3000 \
+  -e DATABASE_URL=<mongodb://USERNAME:PASSWORD@HOST/DATABASE> \
+  -e NEXTAUTH_SECRET=<any_string> \
+  -e OPENAI_API_KEY=<key> \
+  -it ghcr.io/pong420/chat-gpt-client:latest
+``` -->
+
+### Development
+
+1. Create `.env.development.local` at the project root. Copy the content from `.env` and replace the corresponding variables
+
+2. Install packages and setup
 
    ```
    npm ci
    npm run db
    ```
 
-4. Start development
+3. Start development
 
    ```
    npm run dev
    ```
 
-5. Go to http://localhost:3000/admin and create a user. The admin page and related API only available in the development
+4. Go to http://localhost:3000/admin and create a user. The admin page and related API only available in the development
 
-6. Go to http://localhost:3000/ and sign in.
-
-### Deployment
-
-- The Dokerfile is not ready
-- You can set up Vercel and MongoDB Atlas, and they are free.
+5. Go to http://localhost:3000/ and sign in.
