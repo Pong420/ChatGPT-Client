@@ -3,12 +3,13 @@
   "version": "0.1.2",
   "private": true,
   "scripts": {
+    "start": "next start",
     "build": "next build",
     "dev": "next dev",
+    "lint": "next lint",
     "postinstall": "prisma generate",
     "db": "npx prisma db push",
-    "lint": "next lint",
-    "start": "next start"
+    "docker": "NODE_ENV=production node scripts/docker.mjs"
   },
   "dependencies": {
     "@emotion/react": "^11.10.6",
