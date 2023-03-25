@@ -8,6 +8,8 @@ import { AccountMenu } from './AccountMenu';
 import { Preferences } from './Preferences';
 import pkg from '../../../package.json';
 
+const openGithub = () => window.open(`https://github.com/Pong420/chat-gpt-client`);
+
 export function MainMenu(props: MenuModalProps) {
   const [accMenu, accMenuCtrl] = useDisclosure();
   const [prefMenu, prefMenuCtrl] = useDisclosure();
@@ -27,11 +29,7 @@ export function MainMenu(props: MenuModalProps) {
         <MenuModalSection>
           <MenuModalRow title="Account" icon={IconUserCircle} onClick={accMenuCtrl.open} />
           <MenuModalRow title="Preferences" icon={IconSettings} onClick={prefMenuCtrl.open} />
-          <MenuModalRow
-            title="Github"
-            icon={IconBrandGithub}
-            onClick={() => window.open(`https://github.com/Pong420/chat-gpt-client`)}
-          />
+          <MenuModalRow title="Github" icon={IconBrandGithub} onClick={openGithub} />
         </MenuModalSection>
         <MenuModalSection>
           <MenuModalRow title="Version" text={pkg.version} />

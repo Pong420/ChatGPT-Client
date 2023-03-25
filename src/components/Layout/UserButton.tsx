@@ -41,6 +41,7 @@ export function UserButton({ image, name, icon, ...props }: UserButtonProps) {
           {icon || <IconChevronRight size="0.9rem" />}
         </Group>
       </UnstyledButton>
+
       <MainMenu opened={menuOpened} onClose={menuCtrl.close} />
     </>
   );

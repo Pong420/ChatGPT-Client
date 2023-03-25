@@ -5,7 +5,7 @@ export function Preferences(props: MenuModalProps) {
   return (
     <MenuModal {...props} title="Preferences">
       <MenuModalSection>
-        <MenuModalRow title="Dark Mode" rightSection={<Switch size="md" checked />} />
+        <MenuModalRow title="Dark Mode" rightSection={<Switch size="md" />} />
         <MenuModalRow title="Fixed Width" rightSection={<Switch size="md" checked />} />
       </MenuModalSection>
       <MenuModalSection>
