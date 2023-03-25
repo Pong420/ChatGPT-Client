@@ -46,10 +46,12 @@ function MarkdownComponent(content: Content) {
           {content.url}
         </a>
       );
+    case 'paragraph':
+      return <p>{astToRectNode(content.children)}</p>;
   }
 
   if ('children' in content) {
-    return <>{astToRectNode(content.children)}</>;
+    return <div>{astToRectNode(content.children)}</div>;
   }
 
   if ('value' in content) {
