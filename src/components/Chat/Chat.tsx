@@ -3,6 +3,7 @@ import { Text, Center, Container, Stack, createStyles } from '@mantine/core';
 import { api } from '@/utils/api';
 import { ChatMessage } from './ChatMessage';
 import { InputArea } from './InputArea';
+import { ChatReply } from './ChatReply';
 
 export interface ChatProps {
   chatId: string;
@@ -53,7 +54,8 @@ export function Chat({ chatId }: ChatProps) {
             {data.map((m, idx) => (
               <ChatMessage key={idx} message={m} />
             ))}
-            {messages.isLoading ? null : waitForReply && <ChatMessage />}
+            {/* {messages.isLoading ? null : waitForReply && <ChatReply chatId={chatId} />} */}
+            <ChatReply chatId={chatId} />
           </>
         ) : (
           <Center h="100%">

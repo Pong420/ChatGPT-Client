@@ -37,6 +37,8 @@
     "next": "^13.2.4",
     "next-auth": "^4.20.1",
     "openai": "^3.2.1",
+    "python-shell": "^5.0.0",
+    "raw-loader": "^4.0.2",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "remark": "^14.0.2",

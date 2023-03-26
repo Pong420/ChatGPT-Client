@@ -1,8 +1,8 @@
 import { Avatar, Container, Group, createStyles, keyframes, px } from '@mantine/core';
 import type { Message } from '@prisma/client';
+import { Markdown } from '@/components/Markdown';
 import { ChatCompletionRequestMessageRoleEnum } from '@/utils/openai';
 import ChatGPTIcon from '@/assets/chatgpt.svg';
-import { Markdown } from '../Markdown';
 
 export interface ChatMessageProps {
   message?: Message;
@@ -27,7 +27,6 @@ const useStyles = createStyles(theme => {
     },
     message: {
       overflow: 'hidden',
-      // flex: '0 1 auto',
       width: `100%`
     }
   };
