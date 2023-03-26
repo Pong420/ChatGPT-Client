@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import type { Content } from 'mdast';
 import { unified } from 'unified';
-import { Code, NavLink } from '@mantine/core';
+import { Code } from '@mantine/core';
 import { Prism, type PrismProps } from '@mantine/prism';
 import remarkParse from 'remark-parse';
 import remarkGfm from 'remark-gfm';
