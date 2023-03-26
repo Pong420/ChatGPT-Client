@@ -88,6 +88,7 @@ model Message {
     chatId  String @db.ObjectId
     role    String
     content String
+    usage  Json?
 
     @@map("messages")
 }

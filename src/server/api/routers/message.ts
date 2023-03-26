@@ -53,13 +53,15 @@ export const messageRouter = createTRPCRouter({
           replyPayload = {
             role: ChatCompletionRequestMessageRoleEnum.Assistant,
             content: choice.message.content,
-            chatId: chat.id
+            chatId: chat.id,
+            usage: { ...usage }
           };
         } else {
           replyPayload = {
             role: ChatCompletionRequestMessageRoleEnum.Assistant,
             content: 'Hello! How can I assist you today?',
-            chatId: chat.id
+            chatId: chat.id,
+            usage: null
           };
         }
 
