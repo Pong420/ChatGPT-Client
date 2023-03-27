@@ -1,14 +1,11 @@
 import { type Ref, forwardRef, useState } from 'react';
-import { nanoid } from 'nanoid';
 import { ActionIcon, Textarea, createStyles } from '@mantine/core';
 import { useInputState } from '@mantine/hooks';
 import { IconBrandTelegram } from '@tabler/icons-react';
-import { api } from '@/utils/api';
-import { ChatCompletionRequestMessageRoleEnum } from '@/utils/openai';
 
 export interface InputAreaProps {
-  chatId: string;
-  onLoad?: (isLoading: boolean) => void;
+  waitingForReply?: boolean;
+  onSubmit?: (content: string) => void;
 }
 
 const useStyles = createStyles(theme => ({
@@ -20,31 +17,16 @@ const useStyles = createStyles(theme => ({
   }
 }));
 
-function InputAreaComponent({ chatId, onLoad, ...props }: InputAreaProps, ref: Ref<HTMLTextAreaElement>) {
+function InputAreaComponent({ onSubmit, waitingForReply, ...props }: InputAreaProps, ref: Ref<HTMLTextAreaElement>) {
   const { classes } = useStyles();
   const [content, setContent] = useInputState('');
   const [keysDown, setkeysDown] = useState<string[]>([]);
 
-  const context = api.useContext();
-
-  const sendMessage = api.message.stream.useMutation({
-    onMutate: ({ content, chatId, ref }) => {
-      // add user message to list
-      context.message.all.setData(
-        { chat: chatId },
-        m => m && [...m, { id: ref, role: ChatCompletionRequestMessageRoleEnum.User, content, chatId, usage: null }]
-      );
-      onLoad?.(true);
-    }
-    // onSuccess: ({ question, reply }, { ref }) => {
-    //   // update user message and add chat gpt reply
-    //   context.message.all.setData(
-    //     { chat: chatId },
-    //     m => m && m.map(mm => (mm.id === ref ? question : mm)).concat(reply)
-    //   );
-    //   onLoad?.(false);
-    // }
-  });
+  const handleSubmit = () => {
+    if (waitingForReply || !content) return;
+    onSubmit?.(content);
+    setContent('');
+  };
 
   const onKeyDown = (event: React.KeyboardEvent) => {
     if (event.nativeEvent.isComposing) return;
@@ -52,19 +34,13 @@ function InputAreaComponent({ chatId, onLoad, ...props }: InputAreaProps, ref: R
 
     if (event.key === 'Enter' && !keysDown.includes('Shift')) {
       event.preventDefault();
-      _onSubmit();
+      handleSubmit();
     }
   };
 
   const onKeyUp = (event: React.KeyboardEvent) => {
     if (event.nativeEvent.isComposing) return;
     setkeysDown(k => k.filter(kk => kk !== event.key));
-  };
-
-  const _onSubmit = () => {
-    if (sendMessage.isLoading || !content) return;
-    sendMessage.mutate({ chatId, content, ref: nanoid() });
-    setContent('');
   };
 
   return (
@@ -86,8 +62,8 @@ function InputAreaComponent({ chatId, onLoad, ...props }: InputAreaProps, ref: R
           color="dark"
           mb={8}
           mr={8}
-          onClick={_onSubmit}
-          loading={sendMessage.isLoading}
+          loading={waitingForReply}
+          onClick={handleSubmit}
         >
           <IconBrandTelegram size={18} />
         </ActionIcon>

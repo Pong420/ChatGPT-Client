@@ -1,4 +1,4 @@
-import { Avatar, Container, Group, createStyles, keyframes, px } from '@mantine/core';
+import { Avatar, Container, Group, createStyles, keyframes, px, rem } from '@mantine/core';
 import type { Message } from '@prisma/client';
 import { Markdown } from '@/components/Markdown';
 import { ChatCompletionRequestMessageRoleEnum } from '@/utils/openai';
@@ -18,6 +18,11 @@ const useStyles = createStyles(theme => {
   return {
     content: {
       position: 'relative'
+    },
+    avatar: {
+      alignSelf: 'flex-start',
+      flex: '0 0 auto',
+      height: `3.55rem`
     },
     cursor: {
       width: '1em',
@@ -40,14 +45,16 @@ export function ChatMessage({ message }: ChatMessageProps) {
   return (
     <div>
       <Container>
-        <Group py="lg" m="auto" noWrap>
-          {message?.role === ChatCompletionRequestMessageRoleEnum.User ? (
-            <Avatar />
-          ) : (
-            <Avatar>
-              <ChatGPTIcon width={chatgptIconSize} height={chatgptIconSize} />
-            </Avatar>
-          )}
+        <Group py="sm" m="auto" noWrap>
+          <div className={classes.avatar}>
+            {message?.role === ChatCompletionRequestMessageRoleEnum.User ? (
+              <Avatar />
+            ) : (
+              <Avatar>
+                <ChatGPTIcon width={chatgptIconSize} height={chatgptIconSize} />
+              </Avatar>
+            )}
+          </div>
           <div className={classes.message}>
             {message?.content ? <Markdown content={message.content} /> : <div className={classes.cursor} />}
           </div>

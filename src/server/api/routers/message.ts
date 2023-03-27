@@ -15,8 +15,8 @@ import { emitReply } from '@/server/reply';
 import { tiktoken } from '@/utils/tiktoken/tiktoken';
 
 export const messageRouter = createTRPCRouter({
-  all: protectedProcedure.input(z.object({ chat: z.string() })).query(async req => {
-    return prisma.message.findMany({ where: { chatId: req.input.chat, chat: { userId: req.ctx.session.user.id } } });
+  all: protectedProcedure.input(z.object({ chatId: z.string() })).query(async req => {
+    return prisma.message.findMany({ where: { chatId: req.input.chatId, chat: { userId: req.ctx.session.user.id } } });
   }),
   stream: protectedProcedure
     .input(

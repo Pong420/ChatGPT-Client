@@ -1,9 +1,11 @@
-import { useEffect, useState } from 'react';
+import { nanoid } from 'nanoid';
 import { Text, Center, Container, Stack, createStyles } from '@mantine/core';
 import { api } from '@/utils/api';
+import { ChatCompletionRequestMessageRoleEnum } from '@/utils/openai';
+import { useReply } from '@/hooks/useReply';
+import { useScrollToBottom } from '@/hooks/useScrollToBottom';
 import { ChatMessage } from './ChatMessage';
 import { InputArea } from './InputArea';
-import { ChatReply } from './ChatReply';
 
 export interface ChatProps {
   chatId: string;
@@ -17,7 +19,6 @@ const useStyles = createStyles(theme => ({
   },
   messages: {
     flex: 1,
-
     '> :nth-of-type(even)': {
       backgroundColor: theme.colors.dark[5]
     }
@@ -31,20 +32,38 @@ const useStyles = createStyles(theme => ({
 
 export function Chat({ chatId }: ChatProps) {
   const { classes } = useStyles();
-  const [waitForReply, setWaitForReply] = useState(false);
 
-  const messages = api.message.all.useQuery({ chat: chatId }, { refetchIntervalInBackground: false });
+  const context = api.useContext();
+
+  const messages = api.message.all.useQuery({ chatId }, { refetchIntervalInBackground: false });
   const data = messages.data || [];
 
-  useEffect(() => {
-    window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' });
-  }, [data.length]);
-
-  useEffect(() => {
-    if (messages.isSuccess) {
-      window.scrollTo(0, document.documentElement.scrollHeight);
+  const sendMessage = api.message.stream.useMutation({
+    onMutate: ({ content, chatId, ref }) => {
+      // insert user question to the messages list
+      context.message.all.setData(
+        { chatId },
+        m => m && [...m, { id: ref, role: ChatCompletionRequestMessageRoleEnum.User, content, chatId, usage: null }]
+      );
+    },
+    onSuccess: ({ question, reply }, { ref }) => {
+      // update user question and add chat-gpt reply
+      context.message.all.setData({ chatId }, m => m && m.map(n => (n.id === ref ? question : n)).concat(reply));
     }
-  }, [chatId, messages.isSuccess]);
+  });
+
+  const reply = useReply(chatId);
+
+  const handleSendMessage = (content: string) => {
+    sendMessage.mutate({ chatId, content, ref: nanoid() });
+  };
+
+  useScrollToBottom({
+    // scroll to bottom on new message or reply update
+    smooth: [data.length, reply.content],
+    // scroll to bottom immediately when all messages loaded
+    instant: [messages.isSuccess]
+  });
 
   return (
     <Stack className={classes.root} spacing={0}>
@@ -54,8 +73,7 @@ export function Chat({ chatId }: ChatProps) {
             {data.map((m, idx) => (
               <ChatMessage key={idx} message={m} />
             ))}
-            {/* {messages.isLoading ? null : waitForReply && <ChatReply chatId={chatId} />} */}
-            <ChatReply chatId={chatId} />
+            {sendMessage.isLoading && <ChatMessage message={reply} />}
           </>
         ) : (
           <Center h="100%">
@@ -67,7 +85,7 @@ export function Chat({ chatId }: ChatProps) {
       </div>
       <Container className={classes.gradient} pos="sticky" size="100%" bottom="0" p="md" m="0">
         <Container>
-          <InputArea chatId={chatId} onLoad={setWaitForReply} />
+          <InputArea waitingForReply={sendMessage.isLoading} onSubmit={handleSendMessage} />
         </Container>
       </Container>
     </Stack>
