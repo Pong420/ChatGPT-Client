@@ -2,6 +2,7 @@ import {
   type ChatCompletionRequestMessage,
   type CreateCompletionResponse,
   type CreateCompletionResponseChoicesInner,
+  type CreateCompletionResponseUsage,
   ChatCompletionRequestMessageRoleEnum,
   Configuration,
   OpenAIApi
@@ -13,10 +14,10 @@ const configuration = new Configuration({
 
 export const openai = new OpenAIApi(configuration);
 
-export { ChatCompletionRequestMessage, ChatCompletionRequestMessageRoleEnum };
+export { ChatCompletionRequestMessage, ChatCompletionRequestMessageRoleEnum, CreateCompletionResponseUsage };
 
 export interface ChatCompletionStreamResponseChoicesInner extends Omit<CreateCompletionResponseChoicesInner, 'text'> {
-  delta: { role?: ChatCompletionRequestMessageRoleEnum; content?: string }[];
+  delta: { role?: ChatCompletionRequestMessageRoleEnum; content?: string };
 }
 
 export interface ChatCompletionStreamResponse extends Omit<CreateCompletionResponse, 'choices'> {

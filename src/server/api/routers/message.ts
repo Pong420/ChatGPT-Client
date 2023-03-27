@@ -1,20 +1,18 @@
 import type { IncomingMessage } from 'http';
-import { EventEmitter } from 'events';
 import { z } from 'zod';
 import type { Message } from '@prisma/client';
 import { TRPCError } from '@trpc/server';
-import { observable } from '@trpc/server/observable';
 import {
   openai,
   ChatCompletionRequestMessageRoleEnum,
   type ChatCompletionRequestMessage,
-  type ChatCompletionStreamResponse
+  type ChatCompletionStreamResponse,
+  type CreateCompletionResponseUsage
 } from '@/utils/openai';
 import { prisma } from '@/server/db';
-import { createTRPCRouter, protectedProcedure, publicProcedure } from '../trpc';
-// import { tiktoken } from '@/utils/tiktoken/tiktoken';
-
-const ee = new EventEmitter();
+import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc';
+import { emitReply } from '@/server/reply';
+import { tiktoken } from '@/utils/tiktoken/tiktoken';
 
 export const messageRouter = createTRPCRouter({
   all: protectedProcedure.input(z.object({ chat: z.string() })).query(async req => {
@@ -30,25 +28,29 @@ export const messageRouter = createTRPCRouter({
       })
     )
     .mutation(async req => {
+      const userId = req.ctx.session.user.id;
+      const { chatId } = req.input;
       const chat = await prisma.chat.findFirst({
-        where: { id: req.input.chatId, userId: req.ctx.session.user.id }
+        where: { id: chatId, userId }
       });
 
       if (!chat) throw new TRPCError({ code: 'NOT_FOUND' });
 
-      const newMessage: ChatCompletionRequestMessage = {
+      const question: ChatCompletionRequestMessage = {
         role: ChatCompletionRequestMessageRoleEnum.User,
         content: req.input.content
       };
 
       const messages: ChatCompletionRequestMessage[] = req.input.conversation
         ? await prisma.message
-            .findMany({ where: { chatId: req.input.chatId } })
+            .findMany({ where: { chatId } })
             .then(messages => [
               ...messages.map(r => ({ role: r.role as ChatCompletionRequestMessageRoleEnum, content: r.content })),
-              newMessage
+              question
             ])
-        : [newMessage];
+        : [question];
+
+      const questionResp = await prisma.message.create({ data: { chatId, ...question } });
 
       const resp = await openai.createChatCompletion(
         {
@@ -60,36 +62,58 @@ export const messageRouter = createTRPCRouter({
       );
 
       const streamResp = resp.data as unknown as IncomingMessage;
-      const event = req.input.ref;
+
       let answer = '';
 
-      const onData = (data: ArrayBuffer): void => {
-        const lines = data.toString().trim().split('\n');
+      await new Promise<void>(resolve => {
+        const onData = (data: ArrayBuffer): void => {
+          const lines = data.toString().trim().split('\n');
 
-        for (const line of lines) {
-          const content = line.replace(/^data: +/gm, '');
-          if (content === '[DONE]') {
-            onComplete();
-            break;
-          }
+          for (let line of lines) {
+            line = line.replace(/^data: +/gm, '');
+            if (line === '[DONE]') {
+              onComplete();
+              break;
+            }
 
-          try {
-            const resp = JSON.parse(content.trim()) as ChatCompletionStreamResponse;
-            answer += resp.choices[0]?.delta[0]?.content || '';
-            ee.emit(event, answer);
-          } catch (error) {
-            // emit.error(error);
-            // TODO: throw error
+            try {
+              const resp = JSON.parse(line.trim()) as ChatCompletionStreamResponse;
+              const content = resp.choices[0]?.delta?.content || '';
+
+              answer += content;
+              emitReply({ userId, chatId, content: answer });
+            } catch (error) {
+              // emit.error(error);
+              // TODO: throw error
+            }
           }
-        }
+        };
+
+        const onComplete = () => {
+          streamResp.off('data', onData);
+          emitReply({ userId, chatId, content: '' });
+          resolve();
+        };
+
+        streamResp.on('data', onData);
+      });
+
+      const promptUsed = await tiktoken({ content: JSON.stringify(messages) }).then(n => n - messages.length * 2);
+      const completionUsed = await tiktoken({ content: answer });
+
+      const usage: CreateCompletionResponseUsage = {
+        prompt_tokens: promptUsed,
+        completion_tokens: completionUsed,
+        total_tokens: promptUsed + completionUsed
       };
 
-      const onComplete = () => {
-        streamResp.off('data', onData);
-        // TODO: calc tokens used
-      };
+      await prisma.usage.create({ data: { data: { ...usage }, userId: req.ctx.session.user.id } });
 
-      streamResp.on('data', onData);
+      const replyResp = await prisma.message.create({
+        data: { chatId, content: answer, usage: { ...usage }, role: ChatCompletionRequestMessageRoleEnum.Assistant }
+      });
+
+      return { question: questionResp, reply: replyResp };
     }),
   send: protectedProcedure
     .input(
@@ -166,20 +190,5 @@ export const messageRouter = createTRPCRouter({
     }
 
     return prisma.message.update({ where: { id: message.id }, data: { content: req.input.content } });
-  }),
-  streamMessage: publicProcedure.input(z.object({ chatId: z.string() })).subscription(req => {
-    const event = req.input.chatId;
-    return observable<string>(emit => {
-      const onAdd = (data: string) => {
-        // emit data to client
-        emit.next(data);
-      };
-      // trigger `onAdd()` when `add` is triggered in our event emitter
-      ee.on(event, onAdd);
-      // unsubscribe function when client disconnects or stops subscribing
-      return () => {
-        ee.off(event, onAdd);
-      };
-    });
   })
 });

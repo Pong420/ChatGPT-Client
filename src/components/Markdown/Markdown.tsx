@@ -18,9 +18,6 @@ function astToRectNode(payload: Content | Content[], data: React.ReactNode[] = [
     data.push(<MarkdownComponent key={data.length} {...payload} />);
   }
 
-  // else if ('children' in payload) {
-  //   astToRectNode(payload.children, data);
-  // }
   return data;
 }
 

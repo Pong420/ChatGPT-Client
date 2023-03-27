@@ -1,19 +1,30 @@
-import { useState } from 'react';
-import { api } from '@/utils/api';
+import { useEffect, useState } from 'react';
+import { ChatCompletionRequestMessageRoleEnum } from '@/utils/openai';
+import type { ReplyData } from '@/server/reply';
 import { ChatMessage } from './ChatMessage';
-import { ChatCompletionRequestMessageRoleEnum } from 'openai';
+
+/**
+ * TODO:
+ *
+ * - cursor
+ * - completed
+ * - scroll
+ */
 
 export function ChatReply({ chatId }: { chatId: string }) {
   const [content, setContent] = useState('');
 
-  api.message.streamMessage.useSubscription(
-    { chatId },
-    {
-      onData(content) {
-        setContent(content);
-      }
-    }
-  );
+  useEffect(() => {
+    const event = new EventSource(`/api/reply?chatId=${chatId}`);
+    event.onmessage = (event: MessageEvent<string>) => {
+      const { content } = JSON.parse(event.data) as ReplyData;
+      setContent(content);
+    };
+
+    return () => {
+      event.close();
+    };
+  }, [chatId]);
 
   return (
     <ChatMessage
