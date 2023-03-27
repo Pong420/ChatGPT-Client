@@ -11,8 +11,6 @@ export function useScrollToBottom({ smooth, instant }: UseScrollToOptions) {
   }, [smooth]);
 
   useEffect(() => {
-    // if (messages.isSuccess) {
-    window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'instant' });
-    // }
+    window.scrollTo(0, document.documentElement.scrollHeight);
   }, [instant]);
 }
