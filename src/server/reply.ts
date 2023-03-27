@@ -1,3 +1,7 @@
+/**
+ * TODO: refactor simply the communication
+ */
+
 import { EventEmitter, once } from 'events';
 
 export interface ReplyPayload {
@@ -24,6 +28,7 @@ export const emitReply = (p: EmitReplyPayload) => {
   } else {
     Reply.set(key, p.content);
   }
+
   replyEmitter.emit(key, p.content);
 };
 
@@ -31,22 +36,17 @@ export const getReply = (p: ReplyPayload) => {
   return Reply.get(`${p.userId}/${p.chatId}`);
 };
 
-export const subscribeReply = (p: ReplyPayload, callback: (content: string) => void) => {
-  const run = async () => {
-    const event = `${p.userId}/${p.chatId}`;
-    let done = false;
+export const subscribeReply = async (p: ReplyPayload, callback: (content: string) => void) => {
+  const event = `${p.userId}/${p.chatId}`;
+  let done = false;
 
-    while (!done) {
-      const [content] = (await once(replyEmitter, event)) as [string];
-      if (content === '[DONE]') {
-        done = true;
-        // clean reply
-        callback('');
-      } else {
-        callback(content);
-      }
+  while (!done) {
+    const [content] = (await once(replyEmitter, event)) as [string];
+
+    if (content === '[DONE]') {
+      done = true;
+    } else {
+      callback(content);
     }
-  };
-
-  return run();
+  }
 };

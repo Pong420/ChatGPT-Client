@@ -56,7 +56,7 @@ export function Chat({ chatId }: ChatProps) {
     }
   });
 
-  const reply = useReply(chatId);
+  const reply = useReply(sendMessage.isLoading ? chatId : '');
 
   const handleSendMessage = (content: string) => {
     sendMessage.mutate({ chatId, content, ref: nanoid() });

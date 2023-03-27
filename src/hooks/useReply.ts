@@ -7,6 +7,8 @@ export function useReply(chatId: string) {
   const [reply, setReply] = useState('');
 
   useEffect(() => {
+    if (!chatId) return;
+
     const event = new EventSource(`/api/reply?chatId=${chatId}`);
 
     /**
@@ -20,6 +22,7 @@ export function useReply(chatId: string) {
     };
 
     return () => {
+      setReply('');
       event.close();
     };
   }, [chatId]);
