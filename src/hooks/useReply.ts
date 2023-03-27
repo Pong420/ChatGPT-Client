@@ -20,7 +20,6 @@ export function useReply(chatId: string) {
     };
 
     return () => {
-      setReply('');
       event.close();
     };
   }, [chatId]);

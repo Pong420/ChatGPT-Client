@@ -27,9 +27,6 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const content = getReply({ userId, chatId });
   const write = (content?: string) => {
     if (!content) return;
-    if (content === '[DONE]') {
-      content = '';
-    }
     const data: ReplyData = { content };
     res.write(`data: ${JSON.stringify(data)}\n\n`);
   };
