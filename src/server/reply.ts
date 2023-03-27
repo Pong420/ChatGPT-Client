@@ -38,13 +38,8 @@ export const subscribeReply = (p: ReplyPayload, callback: (content: string) => v
 
     while (!done) {
       const [content] = (await once(replyEmitter, event)) as [string];
-      if (content === '[DONE]') {
-        done = true;
-        // clean reply
-        callback('');
-      } else {
-        callback(content);
-      }
+      done = content === '[DONE]';
+      callback(content);
     }
   };
 
