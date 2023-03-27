@@ -43,6 +43,8 @@ function InputAreaComponent({ onSubmit, waitingForReply, ...props }: InputAreaPr
     setkeysDown(k => k.filter(kk => kk !== event.key));
   };
 
+  const onBlur = () => setkeysDown([]);
+
   return (
     <Textarea
       {...props}
@@ -55,6 +57,7 @@ function InputAreaComponent({ onSubmit, waitingForReply, ...props }: InputAreaPr
       onChange={setContent}
       onKeyUp={onKeyUp}
       onKeyDown={onKeyDown}
+      onBlur={onBlur}
       ref={ref}
       rightSection={
         <ActionIcon
