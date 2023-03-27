@@ -24,6 +24,10 @@ const useStyles = createStyles(theme => ({
     }
   },
   gradient: {
+    position: 'sticky',
+    bottom: '0',
+    width: '100%',
+    padding: `${theme.spacing.md} 0`,
     background: `linear-gradient(to bottom, ${theme.fn.rgba(theme.colors.dark[9], 0.1)} 0%, ${
       theme.colors.dark[9]
     } 200%)`
@@ -85,11 +89,11 @@ export function Chat({ chatId }: ChatProps) {
           )
         )}
       </div>
-      <Container className={classes.gradient} pos="sticky" size="100%" bottom="0" p="md" m="0">
+      <div className={classes.gradient}>
         <Container>
           <InputArea waitingForReply={sendMessage.isLoading} onSubmit={handleSendMessage} />
         </Container>
-      </Container>
+      </div>
     </Stack>
   );
 }

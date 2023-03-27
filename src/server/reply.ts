@@ -19,7 +19,11 @@ export const Reply = new Map<string, string>();
 
 export const emitReply = (p: EmitReplyPayload) => {
   const key = `${p.userId}/${p.chatId}`;
-  Reply.set(key, p.content);
+  if (p.content === '[DONE]') {
+    Reply.delete(key);
+  } else {
+    Reply.set(key, p.content);
+  }
   replyEmitter.emit(key, p.content);
 };
 

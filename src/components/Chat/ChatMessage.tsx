@@ -17,6 +17,9 @@ const blink = keyframes({
 
 const useStyles = createStyles(theme => {
   return {
+    root: {
+      padding: `0 ${theme.spacing.md}`
+    },
     content: {
       position: 'relative'
     },
@@ -49,8 +52,8 @@ export function ChatMessage({ message, typing }: ChatMessageProps) {
   const cursor = typing && <span className={classes.cursor} />;
 
   return (
-    <div>
-      <Group noWrap maw="60rem" mx="auto">
+    <div className={classes.root}>
+      <Group mx="auto" noWrap>
         <div className={classes.avatar}>
           {message?.role === ChatCompletionRequestMessageRoleEnum.User ? (
             <Avatar />
@@ -60,9 +63,11 @@ export function ChatMessage({ message, typing }: ChatMessageProps) {
             </Avatar>
           )}
         </div>
+
         <Container className={classes.message} p="0">
           {message?.content ? <Markdown content={message.content} cursor={cursor} /> : cursor}
         </Container>
+
         <div style={{ width: 40 }}></div>
       </Group>
     </div>
