@@ -91,7 +91,7 @@ export const messageRouter = createTRPCRouter({
 
         const onComplete = () => {
           streamResp.off('data', onData);
-          emitReply({ userId, chatId, content: '' });
+          emitReply({ userId, chatId, content: '[DONE]' });
           resolve();
         };
 

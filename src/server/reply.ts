@@ -1,4 +1,4 @@
-import { EventEmitter } from 'events';
+import { EventEmitter, once } from 'events';
 
 export interface ReplyPayload {
   userId: string;
@@ -28,16 +28,19 @@ export const getReply = (p: ReplyPayload) => {
 };
 
 export const subscribeReply = (p: ReplyPayload, callback: (content: string) => void) => {
-  return new Promise<void>((resolve, _reject) => {
+  const run = async () => {
     const event = `${p.userId}/${p.chatId}`;
-    const onReply = (content: string) => {
+    let done = false;
+
+    while (!done) {
+      const [content] = (await once(replyEmitter, event)) as [string];
       if (content === '[DONE]') {
-        replyEmitter.off(event, onReply);
-        resolve();
+        done = true;
       } else {
         callback(content);
       }
-    };
-    replyEmitter.on(event, onReply);
-  });
+    }
+  };
+
+  return run();
 };

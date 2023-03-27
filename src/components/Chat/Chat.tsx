@@ -73,14 +73,16 @@ export function Chat({ chatId }: ChatProps) {
             {data.map((m, idx) => (
               <ChatMessage key={idx} message={m} />
             ))}
-            {sendMessage.isLoading && <ChatMessage message={reply} />}
+            {sendMessage.isLoading && <ChatMessage typing message={reply} />}
           </>
         ) : (
-          <Center h="100%">
-            <Text align="center" fw="bold">
-              No messages exist. Let&apos;s start by asking your first question
-            </Text>
-          </Center>
+          messages.isSuccess && (
+            <Center h="100%">
+              <Text align="center" fw="bold">
+                No messages exist. Let&apos;s start by asking your first question
+              </Text>
+            </Center>
+          )
         )}
       </div>
       <Container className={classes.gradient} pos="sticky" size="100%" bottom="0" p="md" m="0">

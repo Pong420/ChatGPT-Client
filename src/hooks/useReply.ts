@@ -8,15 +8,18 @@ export function useReply(chatId: string) {
 
   useEffect(() => {
     const event = new EventSource(`/api/reply?chatId=${chatId}`);
-    const onMessage = (event: MessageEvent<string>) => {
+
+    /**
+     * Note:
+     * `addEventListener('message', callback)` is not working
+     * https://developer.mozilla.org/en-US/docs/Web/API/EventSource#examples
+     */
+    event.onmessage = (event: MessageEvent<string>) => {
       const { content } = JSON.parse(event.data) as ReplyData;
       setReply(content);
     };
 
-    event.addEventListener('message', onMessage);
-
     return () => {
-      event.removeEventListener('message', onMessage);
       event.close();
     };
   }, [chatId]);

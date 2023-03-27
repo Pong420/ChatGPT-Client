@@ -6,6 +6,7 @@ import ChatGPTIcon from '@/assets/chatgpt.svg';
 
 export interface ChatMessageProps {
   message?: Message;
+  typing?: boolean;
 }
 
 const blink = keyframes({
@@ -20,15 +21,19 @@ const useStyles = createStyles(theme => {
       position: 'relative'
     },
     avatar: {
-      alignSelf: 'flex-start',
       flex: '0 0 auto',
+      display: 'flex',
+      alignSelf: 'flex-start',
+      alignItems: 'center',
       height: `3.55rem`
     },
     cursor: {
-      width: '1em',
-      height: px(theme.lineHeight) * px(theme.fontSizes.md),
       backgroundColor: theme.fn.darken(theme.colors.dark[3], 0.2),
-      animation: `${blink} 1s step-end infinite`
+      animation: `${blink} 1s step-end infinite`,
+      display: 'inline-block',
+      width: '0.7rem',
+      height: `calc(${theme.lineHeight || '1'}rem - 6px)`,
+      transform: `translate(0.3rem, 0.25rem)`
     },
     message: {
       overflow: 'hidden',
@@ -39,27 +44,27 @@ const useStyles = createStyles(theme => {
 
 const chatgptIconSize = `1.4em`;
 
-export function ChatMessage({ message }: ChatMessageProps) {
+export function ChatMessage({ message, typing }: ChatMessageProps) {
   const { classes } = useStyles();
+  const cursor = typing && <span className={classes.cursor} />;
 
   return (
     <div>
-      <Container>
-        <Group py="sm" m="auto" noWrap>
-          <div className={classes.avatar}>
-            {message?.role === ChatCompletionRequestMessageRoleEnum.User ? (
-              <Avatar />
-            ) : (
-              <Avatar>
-                <ChatGPTIcon width={chatgptIconSize} height={chatgptIconSize} />
-              </Avatar>
-            )}
-          </div>
-          <div className={classes.message}>
-            {message?.content ? <Markdown content={message.content} /> : <div className={classes.cursor} />}
-          </div>
-        </Group>
-      </Container>
+      <Group noWrap maw="60rem" mx="auto">
+        <div className={classes.avatar}>
+          {message?.role === ChatCompletionRequestMessageRoleEnum.User ? (
+            <Avatar />
+          ) : (
+            <Avatar>
+              <ChatGPTIcon width={chatgptIconSize} height={chatgptIconSize} />
+            </Avatar>
+          )}
+        </div>
+        <Container className={classes.message} p="0">
+          {message?.content ? <Markdown content={message.content} cursor={cursor} /> : cursor}
+        </Container>
+        <div style={{ width: 40 }}></div>
+      </Group>
     </div>
   );
 }

@@ -1,31 +1,41 @@
 import { useMemo } from 'react';
-import type { Content } from 'mdast';
 import { unified } from 'unified';
+import { default as remarkParse } from 'remark-parse';
+import { default as remarkGfm } from 'remark-gfm';
+import type { Content } from 'mdast';
 import { Code } from '@mantine/core';
 import { Prism, type PrismProps } from '@mantine/prism';
-import remarkParse from 'remark-parse';
-import remarkGfm from 'remark-gfm';
 import { MarkdownTable } from './MarkdownTable';
 
 export interface MarkdownProps {
   content: string;
+  cursor?: React.ReactNode;
 }
 
-function astToRectNode(payload: Content | Content[], data: React.ReactNode[] = []) {
-  if (Array.isArray(payload)) {
-    payload.forEach(t => astToRectNode(t, data));
-  } else if ('type' in payload) {
-    data.push(<MarkdownComponent key={data.length} {...payload} />);
-  }
+interface MarkdownComponentProps {
+  cursor?: React.ReactNode;
+  content: Content;
+}
 
+function faltten(content: Content | Content[], data: Content[] = []) {
+  if (Array.isArray(content)) {
+    content.forEach(t => faltten(t, data));
+  } else if ('type' in content) {
+    const exclude: Content['type'][] = ['table', 'paragraph'];
+    if ('children' in content && !exclude.includes(content.type)) {
+      data.push(...faltten(content.children));
+    } else {
+      data.push(content);
+    }
+  }
   return data;
 }
 
-function MarkdownComponent(content: Content) {
+function MarkdownComponent({ content, cursor }: MarkdownComponentProps) {
   switch (content.type) {
     case 'code':
       return (
-        <Prism key={Math.random()} my="sm" language={content.lang as PrismProps['language']}>
+        <Prism my="sm" language={content.lang as PrismProps['language']}>
           {content.value}
         </Prism>
       );
@@ -43,26 +53,36 @@ function MarkdownComponent(content: Content) {
           {content.url}
         </a>
       );
-    case 'paragraph':
-      return <p>{astToRectNode(content.children)}</p>;
-  }
-
-  if ('children' in content) {
-    return <div>{astToRectNode(content.children)}</div>;
+    case 'paragraph': {
+      const children = content.children;
+      return (
+        <p>
+          {children.map((content, i) => (
+            <MarkdownComponent key={i} content={content} cursor={i === children.length - 1 && cursor} />
+          ))}
+        </p>
+      );
+    }
   }
 
   if ('value' in content) {
-    return <span>{content.value}</span>;
+    return <span>{content.value}{cursor}</span>;
   }
 
   return null;
 }
 
-export function Markdown({ content }: MarkdownProps) {
-  const nodes = useMemo(() => {
+export function Markdown({ content, cursor }: MarkdownProps) {
+  const data = useMemo(() => {
     const ast = unified().use(remarkParse).use(remarkGfm).parse(content);
-    return astToRectNode(ast.children);
+    return faltten(ast.children);
   }, [content]);
 
-  return <>{nodes}</>;
+  return (
+    <>
+      {data.map((content, i) => (
+        <MarkdownComponent key={i} content={content} cursor={i === data.length - 1 && cursor} />
+      ))}
+    </>
+  );
 }
