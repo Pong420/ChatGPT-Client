@@ -1,4 +1,4 @@
-import { Avatar, Container, Group, createStyles, keyframes, px, rem } from '@mantine/core';
+import { Avatar, Container, Group, createStyles, keyframes } from '@mantine/core';
 import type { Message } from '@prisma/client';
 import { Markdown } from '@/components/Markdown';
 import { ChatCompletionRequestMessageRoleEnum } from '@/utils/openai';
