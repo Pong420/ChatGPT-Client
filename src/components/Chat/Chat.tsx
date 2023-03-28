@@ -42,7 +42,7 @@ export function Chat({ chatId }: ChatProps) {
   const messages = api.message.all.useQuery({ chatId }, { refetchIntervalInBackground: false });
   const data = messages.data || [];
 
-  const sendMessage = api.message.stream.useMutation({
+  const sendMessage = api.message.send.useMutation({
     onMutate: ({ content, chatId, ref }) => {
       // insert user question to the messages list
       context.message.all.setData(
