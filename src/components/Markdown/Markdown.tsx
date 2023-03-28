@@ -3,7 +3,7 @@ import { unified } from 'unified';
 import { default as remarkParse } from 'remark-parse';
 import { default as remarkGfm } from 'remark-gfm';
 import type { Content } from 'mdast';
-import { Code } from '@mantine/core';
+import { Code, List } from '@mantine/core';
 import { Prism, type PrismProps } from '@mantine/prism';
 import { MarkdownTable } from './MarkdownTable';
 
@@ -21,7 +21,7 @@ function faltten(content: Content | Content[], data: Content[] = []) {
   if (Array.isArray(content)) {
     content.forEach(t => faltten(t, data));
   } else if ('type' in content) {
-    const exclude: Content['type'][] = ['table', 'paragraph'];
+    const exclude: Content['type'][] = ['table', 'paragraph', 'list', 'listItem'];
     if ('children' in content && !exclude.includes(content.type)) {
       data.push(...faltten(content.children));
     } else {
@@ -32,6 +32,16 @@ function faltten(content: Content | Content[], data: Content[] = []) {
 }
 
 function MarkdownComponent({ content, cursor }: MarkdownComponentProps) {
+  const renderNodes = (nodes: Content[]) => {
+    return (
+      <>
+        {nodes.map((content, i) => (
+          <MarkdownComponent key={i} content={content} cursor={i === nodes.length - 1 && cursor} />
+        ))}
+      </>
+    );
+  };
+
   switch (content.type) {
     case 'code':
       return (
@@ -53,20 +63,23 @@ function MarkdownComponent({ content, cursor }: MarkdownComponentProps) {
           {content.url}
         </a>
       );
-    case 'paragraph': {
-      const children = content.children;
-      return (
-        <p>
-          {children.map((content, i) => (
-            <MarkdownComponent key={i} content={content} cursor={i === children.length - 1 && cursor} />
-          ))}
-        </p>
-      );
-    }
+    case 'paragraph':
+      return <p>{renderNodes(content.children)}</p>;
+
+    case 'list':
+      return <List type={content.ordered ? 'ordered' : 'unordered'}>{renderNodes(content.children)}</List>;
+
+    case 'listItem':
+      return <List.Item>{renderNodes(content.children)}</List.Item>;
   }
 
   if ('value' in content) {
-    return <span>{content.value}{cursor}</span>;
+    return (
+      <span>
+        {content.value}
+        {cursor}
+      </span>
+    );
   }
 
   return null;

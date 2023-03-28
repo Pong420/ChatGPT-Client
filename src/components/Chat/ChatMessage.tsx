@@ -28,7 +28,7 @@ const useStyles = createStyles(theme => {
       display: 'flex',
       alignSelf: 'flex-start',
       alignItems: 'center',
-      height: `3.55rem`
+      height: `5.55rem`
     },
     cursor: {
       backgroundColor: theme.fn.darken(theme.colors.dark[3], 0.2),
@@ -53,23 +53,25 @@ export function ChatMessage({ message, typing }: ChatMessageProps) {
 
   return (
     <div className={classes.root}>
-      <Group mx="auto" noWrap>
-        <div className={classes.avatar}>
-          {message?.role === ChatCompletionRequestMessageRoleEnum.User ? (
-            <Avatar />
-          ) : (
-            <Avatar>
-              <ChatGPTIcon width={chatgptIconSize} height={chatgptIconSize} />
-            </Avatar>
-          )}
-        </div>
+      <Container>
+        <Group mx="auto" noWrap>
+          <div className={classes.avatar}>
+            {message?.role === ChatCompletionRequestMessageRoleEnum.User ? (
+              <Avatar />
+            ) : (
+              <Avatar>
+                <ChatGPTIcon width={chatgptIconSize} height={chatgptIconSize} />
+              </Avatar>
+            )}
+          </div>
 
-        <Container className={classes.message} p="0">
-          {message?.content ? <Markdown content={message.content} cursor={cursor} /> : cursor}
-        </Container>
+          <Container className={classes.message} py="md" px="0">
+            {message?.content ? <Markdown content={message.content} cursor={cursor} /> : cursor}
+          </Container>
 
-        <div style={{ width: 40 }}></div>
-      </Group>
+          <div style={{ width: 40 }}></div>
+        </Group>
+      </Container>
     </div>
   );
 }
