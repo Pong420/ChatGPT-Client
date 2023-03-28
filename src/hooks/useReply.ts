@@ -5,10 +5,13 @@ import { ChatCompletionRequestMessageRoleEnum } from '@/utils/openai';
 
 export function useReply(chatId: string) {
   const [reply, setReply] = useState('');
+  const [retry, setRetry] = useState(0);
+  const [connected, setConnected] = useState(false);
 
   useEffect(() => {
     if (!chatId) return;
 
+    let retryTimeout: ReturnType<typeof setTimeout>;
     const event = new EventSource(`/api/reply?chatId=${chatId}`);
 
     /**
@@ -21,11 +24,23 @@ export function useReply(chatId: string) {
       setReply(content);
     };
 
+    event.onopen = () => {
+      setConnected(true);
+      clearTimeout(retryTimeout);
+    };
+
+    event.onerror = () => {
+      event.close();
+      setConnected(false);
+      retryTimeout = setTimeout(() => setRetry(r => r + 1));
+    };
+
     return () => {
       setReply('');
       event.close();
+      clearTimeout(retryTimeout);
     };
-  }, [chatId]);
+  }, [chatId, retry]);
 
   const message: Message = {
     id: `reply-${chatId}`,
@@ -35,5 +50,5 @@ export function useReply(chatId: string) {
     content: reply
   };
 
-  return message;
+  return { message, connected };
 }

@@ -64,7 +64,7 @@ export function Chat({ chatId }: ChatProps) {
 
   useScrollToBottom({
     // scroll to bottom on new message or reply update
-    smooth: [data.length, reply.content],
+    smooth: [data.length, reply.message.content],
     // scroll to bottom immediately when all messages loaded
     instant: [messages.isSuccess]
   });
@@ -77,7 +77,7 @@ export function Chat({ chatId }: ChatProps) {
             {data.map((m, idx) => (
               <ChatMessage key={idx} message={m} />
             ))}
-            {sendMessage.isLoading && <ChatMessage typing message={reply} />}
+            {sendMessage.isLoading && <ChatMessage typing message={reply.message} />}
           </>
         ) : (
           messages.isSuccess && (
