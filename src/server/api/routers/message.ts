@@ -12,6 +12,7 @@ import { prisma } from '@/server/db';
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc';
 import { emitReply } from '@/server/reply';
 import { tiktoken } from '@/utils/tiktoken/tiktoken';
+import { getPrompt } from '@/utils/prompts';
 
 export const messageRouter = createTRPCRouter({
   all: protectedProcedure.input(z.object({ chatId: z.string() })).query(async req => {
@@ -23,24 +24,38 @@ export const messageRouter = createTRPCRouter({
         chatId: z.string(),
         content: z.string(),
         ref: z.string(), // for frontend,
-        conversation: z.boolean().optional().default(true)
+        conversation: z.boolean().optional()
       })
     )
     .mutation(async req => {
       const userId = req.ctx.session.user.id;
-      const { chatId } = req.input;
+      const { chatId, content, conversation } = req.input;
       const chat = await prisma.chat.findFirst({
         where: { id: chatId, userId }
       });
 
       if (!chat) throw new TRPCError({ code: 'NOT_FOUND' });
 
+      const systemPrompt = chat.system && getPrompt(chat.system);
+      const systemMessages: ChatCompletionRequestMessage[] = systemPrompt
+        ? [
+            {
+              role: ChatCompletionRequestMessageRoleEnum.System,
+              content: systemPrompt
+            }
+          ]
+        : [];
+
       const question: ChatCompletionRequestMessage = {
         role: ChatCompletionRequestMessageRoleEnum.User,
-        content: req.input.content
+        content
       };
 
-      const messages: ChatCompletionRequestMessage[] = req.input.conversation
+      // If system message defined, do not include all conversation
+      // Therefore less token used.
+      const includeAllConversation = typeof conversation === 'boolean' ? conversation : !systemMessages.length;
+
+      let messages: ChatCompletionRequestMessage[] = includeAllConversation
         ? await prisma.message
             .findMany({ where: { chatId } })
             .then(messages => [
@@ -48,6 +63,8 @@ export const messageRouter = createTRPCRouter({
               question
             ])
         : [question];
+
+      messages = [...systemMessages, ...messages];
 
       const questionResp = await prisma.message.create({ data: { chatId, ...question } });
 
@@ -82,7 +99,6 @@ export const messageRouter = createTRPCRouter({
               answer += content;
               emitReply({ userId, chatId, content: answer });
             } catch (error) {
-              // emit.error(error);
               // TODO: throw error
             }
           }

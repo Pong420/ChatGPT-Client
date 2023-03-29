@@ -1,9 +1,10 @@
+import Head from 'next/head';
 import { api } from '@/utils/api';
 import { Stack, createStyles, rem } from '@mantine/core';
 import { IconMessages } from '@tabler/icons-react';
 import type { Chat as ChatData } from '@prisma/client';
 import { useNavigate } from '@/hooks/useNavigate';
-import { DeleteChat, EditChat } from './ChatAction';
+import { DeleteChat } from './ChatAction';
 
 const useStyles = createStyles(theme => ({
   list: {
@@ -49,6 +50,7 @@ const useStyles = createStyles(theme => ({
 function ChatItem({ chat: c }: { chat: ChatData }) {
   const { classes } = useStyles();
   const { router, pathname, active } = useNavigate(`/chat/${c.id}`);
+  const title = c.title || c.system || 'Conversation';
 
   return (
     <div
@@ -57,12 +59,17 @@ function ChatItem({ chat: c }: { chat: ChatData }) {
         router.push({ pathname }).catch(() => void 0);
       }}
     >
+      {active && (
+        <Head>
+          <title>{title} | ChatGPT</title>
+        </Head>
+      )}
       <div className={classes.itemContent}>
         <IconMessages size={20} className={classes.itemIcon} stroke={1.5} />
-        New Chat
+        {c.title || c.system || 'Conversation'}
       </div>
 
-      <EditChat chat={c} />
+      {/* <EditChat chat={c} /> */}
       <DeleteChat chat={c} />
     </div>
   );

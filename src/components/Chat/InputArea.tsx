@@ -1,77 +1,102 @@
 import { type Ref, forwardRef, useState } from 'react';
-import { ActionIcon, Textarea, createStyles } from '@mantine/core';
-import { useInputState } from '@mantine/hooks';
+import {
+  createStyles,
+  ActionIcon,
+  Autocomplete,
+  Textarea,
+  type TextareaProps,
+  type AutocompleteProps
+} from '@mantine/core';
+import { useDisclosure, useInputState } from '@mantine/hooks';
 import { IconBrandTelegram } from '@tabler/icons-react';
+import { searchPrompts } from '@/utils/prompts';
 
 export interface InputAreaProps {
-  waitingForReply?: boolean;
+  loading?: boolean;
   onSubmit?: (content: string) => void;
 }
 
 const useStyles = createStyles(theme => ({
   input: {
-    backgroundColor: theme.colors.dark[4]
+    backgroundColor: theme.colors.dark[4],
+    minHeight: '44px'
   },
   send: {
     alignSelf: 'flex-end'
   }
 }));
 
-function InputAreaComponent({ onSubmit, waitingForReply, ...props }: InputAreaProps, ref: Ref<HTMLTextAreaElement>) {
+function InputAreaComponent({ onSubmit, loading }: InputAreaProps, ref: Ref<HTMLInputElement & HTMLTextAreaElement>) {
   const { classes } = useStyles();
   const [content, setContent] = useInputState('');
   const [keysDown, setkeysDown] = useState<string[]>([]);
+  const [dropdownMenuOpen, handleDropdownMenu] = useDisclosure(false);
+  const useAutoComplete = content.startsWith('/') && !content.includes('\n');
 
   const handleSubmit = () => {
-    if (waitingForReply || !content) return;
+    if (loading || !content) return;
     onSubmit?.(content);
     setContent('');
   };
 
-  const onKeyDown = (event: React.KeyboardEvent) => {
+  const handleKeyDown = (event: React.KeyboardEvent) => {
     if (event.nativeEvent.isComposing) return;
     setkeysDown(k => [...k, event.key]);
 
-    if (event.key === 'Enter' && !keysDown.includes('Shift')) {
+    if (event.key === 'Enter' && !keysDown.includes('Shift') && !dropdownMenuOpen) {
       event.preventDefault();
       handleSubmit();
     }
   };
 
-  const onKeyUp = (event: React.KeyboardEvent) => {
+  const handleKeyUp = (event: React.KeyboardEvent) => {
     if (event.nativeEvent.isComposing) return;
     setkeysDown(k => k.filter(kk => kk !== event.key));
   };
 
-  const onBlur = () => setkeysDown([]);
+  const handlePaste = (event: React.ClipboardEvent) => {
+    event.preventDefault();
+    const clipboardData = event.clipboardData;
+    const data = clipboardData?.getData('Text');
+    setContent(data?.trim() || '');
+  };
 
-  return (
-    <Textarea
-      {...props}
-      classNames={{ input: classes.input }}
-      autosize
-      autoFocus
-      minRows={1}
-      maxRows={6}
-      value={content}
-      onChange={setContent}
-      onKeyUp={onKeyUp}
-      onKeyDown={onKeyDown}
-      onBlur={onBlur}
+  const handleBlur = () => setkeysDown([]);
+
+  const rightSection = (
+    <ActionIcon className={classes.send} color="dark" mb={8} mr={8} loading={loading} onClick={handleSubmit}>
+      <IconBrandTelegram size={18} />
+    </ActionIcon>
+  );
+
+  const inputProps: Partial<AutocompleteProps> & Partial<TextareaProps> = {
+    classNames: { input: classes.input },
+    autoFocus: true,
+    value: content,
+    onChange: setContent,
+    onBlur: handleBlur,
+    onKeyUp: handleKeyUp,
+    onKeyDown: handleKeyDown,
+    onPaste: handlePaste,
+    rightSection
+  };
+
+  const promtps = useAutoComplete
+    ? // the empty space anims to trigger prompts
+      searchPrompts(content.replace(/^\//, '') || ' ').map(p => `/${p.key}`)
+    : [];
+
+  return useAutoComplete ? (
+    <Autocomplete
+      {...inputProps}
+      data={promtps}
+      dropdownPosition="top"
+      onDropdownOpen={handleDropdownMenu.open}
+      onDropdownClose={handleDropdownMenu.close}
       ref={ref}
-      rightSection={
-        <ActionIcon
-          className={classes.send}
-          color="dark"
-          mb={8}
-          mr={8}
-          loading={waitingForReply}
-          onClick={handleSubmit}
-        >
-          <IconBrandTelegram size={18} />
-        </ActionIcon>
-      }
     />
+  ) : (
+    <Textarea {...inputProps} autosize minRows={1} maxRows={6} ref={ref} />
   );
 }
 

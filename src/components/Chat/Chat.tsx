@@ -2,6 +2,7 @@ import { nanoid } from 'nanoid';
 import { Text, Center, Container, Stack, createStyles } from '@mantine/core';
 import { api } from '@/utils/api';
 import { ChatCompletionRequestMessageRoleEnum } from '@/utils/openai';
+import { isPromptCommand } from '@/utils/prompts';
 import { useReply } from '@/hooks/useReply';
 import { useScrollToBottom } from '@/hooks/useScrollToBottom';
 import { ChatMessage } from './ChatMessage';
@@ -56,11 +57,24 @@ export function Chat({ chatId }: ChatProps) {
     }
   });
 
+  const updateChat = api.chat.update.useMutation({
+    onSuccess: chat => {
+      context.chat.all.setData(undefined, c => c && c.map(cc => (cc.id === chat.id ? chat : cc)));
+    }
+  });
+
   const reply = useReply(sendMessage.isLoading ? chatId : '');
 
   const handleSendMessage = (content: string) => {
-    sendMessage.mutate({ chatId, content, ref: nanoid() });
+    const system = isPromptCommand(content);
+    if (system) {
+      updateChat.mutate({ id: chatId, system });
+    } else {
+      sendMessage.mutate({ chatId, content, ref: nanoid() });
+    }
   };
+
+  const isLoading = updateChat.isLoading || sendMessage.isLoading;
 
   useScrollToBottom({
     // scroll to bottom on new message or reply update
@@ -80,7 +94,7 @@ export function Chat({ chatId }: ChatProps) {
             {sendMessage.isLoading && <ChatMessage typing message={reply.message} />}
           </>
         ) : (
-          messages.isSuccess && (
+          !isLoading && (
             <Center h="100%">
               <Text align="center" fw="bold">
                 No messages exist. Let&apos;s start by asking your first question
@@ -91,7 +105,7 @@ export function Chat({ chatId }: ChatProps) {
       </div>
       <div className={classes.gradient}>
         <Container>
-          <InputArea waitingForReply={sendMessage.isLoading} onSubmit={handleSendMessage} />
+          <InputArea loading={isLoading} onSubmit={handleSendMessage} />
         </Container>
       </div>
     </Stack>

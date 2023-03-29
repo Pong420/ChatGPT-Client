@@ -8,6 +8,8 @@ export function useReply(chatId: string) {
   const [retry, setRetry] = useState(0);
   const [connected, setConnected] = useState(false);
 
+  useEffect(() => setReply(''), [chatId]);
+
   useEffect(() => {
     if (!chatId) return;
 
@@ -30,14 +32,15 @@ export function useReply(chatId: string) {
     };
 
     event.onerror = () => {
-      event.close();
-      setConnected(false);
-      retryTimeout = setTimeout(() => setRetry(r => r + 1));
+      if (event.readyState === event.CLOSED) {
+        setConnected(false);
+        retryTimeout = setTimeout(() => setRetry(r => r + 1), 1000);
+      }
     };
 
     return () => {
-      setReply('');
       event.close();
+      setConnected(false);
       clearTimeout(retryTimeout);
     };
   }, [chatId, retry]);
