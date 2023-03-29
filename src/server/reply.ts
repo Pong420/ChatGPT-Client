@@ -2,7 +2,7 @@
  * TODO: refactor simply the communication
  */
 
-import { EventEmitter, once } from 'events';
+import { EventEmitter } from 'events';
 
 export interface ReplyPayload {
   userId: string;
@@ -13,40 +13,49 @@ export interface EmitReplyPayload extends ReplyPayload {
   content: string;
 }
 
-export interface ReplyData {
+export interface EmitReplyData {
+  chatId: string;
   content: string;
 }
 
-export const replyEmitter = new EventEmitter();
+export interface ReplyData {
+  chatId: string;
+  content: string;
+}
 
-export const Reply = new Map<string, string>();
+const replyEmitter = new EventEmitter();
+
+const Reply = new Map<string, string>();
 
 export const emitReply = (p: EmitReplyPayload) => {
-  const key = `${p.userId}/${p.chatId}`;
+  const event = `${p.userId}`;
+
   if (p.content === '[DONE]') {
-    Reply.delete(key);
+    Reply.delete(event);
   } else {
-    Reply.set(key, p.content);
+    Reply.set(event, p.content);
   }
 
-  replyEmitter.emit(key, p.content);
+  const data: EmitReplyData = { chatId: p.chatId, content: p.content };
+
+  replyEmitter.emit(event, data);
 };
 
 export const getReply = (p: ReplyPayload) => {
-  return Reply.get(`${p.userId}/${p.chatId}`);
+  const event = `${p.userId}`;
+  return Reply.get(event);
 };
 
-export const subscribeReply = async (p: ReplyPayload, callback: (content: string) => void) => {
-  const event = `${p.userId}/${p.chatId}`;
-  let done = false;
-
-  while (!done) {
-    const [content] = (await once(replyEmitter, event)) as [string];
-
-    if (content === '[DONE]') {
-      done = true;
-    } else {
-      callback(content);
-    }
-  }
+export const subscribeReply = async (p: ReplyPayload, callback: (content: EmitReplyData) => void) => {
+  const event = `${p.userId}`;
+  await new Promise<void>(resolve => {
+    replyEmitter.on(event, function handler(p: EmitReplyData) {
+      if (p.content === '[DONE]') {
+        replyEmitter.off(event, handler);
+        resolve();
+      } else {
+        callback(p);
+      }
+    });
+  });
 };

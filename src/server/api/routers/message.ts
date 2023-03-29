@@ -1,5 +1,6 @@
 import type { IncomingMessage } from 'http';
 import { z } from 'zod';
+import type { Message } from '@prisma/client';
 import { TRPCError } from '@trpc/server';
 import {
   openai,
@@ -13,10 +14,13 @@ import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc';
 import { emitReply } from '@/server/reply';
 import { tiktoken } from '@/utils/tiktoken/tiktoken';
 import { getPrompt } from '@/utils/prompts';
+import { UnkownChatID } from '@/constant';
 
 export const messageRouter = createTRPCRouter({
   all: protectedProcedure.input(z.object({ chatId: z.string() })).query(async req => {
-    return prisma.message.findMany({ where: { chatId: req.input.chatId, chat: { userId: req.ctx.session.user.id } } });
+    return req.input.chatId === UnkownChatID
+      ? ([] as Message[])
+      : prisma.message.findMany({ where: { chatId: req.input.chatId, chat: { userId: req.ctx.session.user.id } } });
   }),
   send: protectedProcedure
     .input(
@@ -128,7 +132,7 @@ export const messageRouter = createTRPCRouter({
         data: { chatId, content: answer, usage: { ...usage }, role: ChatCompletionRequestMessageRoleEnum.Assistant }
       });
 
-      return { question: questionResp, reply: replyResp };
+      return { chatId: chat.id, question: questionResp, reply: replyResp };
     }),
   edit: protectedProcedure.input(z.object({ id: z.string(), content: z.string() })).mutation(async req => {
     const message = await prisma.message.findFirst({ where: { id: req.input.id }, include: { chat: true } });

@@ -2,8 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/server/auth';
 import { type ReplyData, getReply, subscribeReply } from '@/server/reply';
-
-export const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+import { UnkownChatID } from '@/constant';
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -27,12 +26,15 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const content = getReply({ userId, chatId });
   const write = (content?: string) => {
     if (!content) return;
-    const data: ReplyData = { content };
+    const data: ReplyData = { chatId, content };
     res.write(`data: ${JSON.stringify(data)}\n\n`);
   };
+
   write(content);
 
-  await subscribeReply({ userId, chatId }, write);
+  await subscribeReply({ userId, chatId }, p => {
+    (p.chatId === chatId || chatId === UnkownChatID) && write(p.content);
+  });
 
   res.end('done\n');
 };

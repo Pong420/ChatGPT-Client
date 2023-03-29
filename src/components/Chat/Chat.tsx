@@ -1,15 +1,18 @@
 import { nanoid } from 'nanoid';
 import { Text, Center, Container, Stack, createStyles } from '@mantine/core';
+import type { Chat } from '@prisma/client';
 import { api } from '@/utils/api';
 import { ChatCompletionRequestMessageRoleEnum } from '@/utils/openai';
 import { isPromptCommand } from '@/utils/prompts';
 import { useReply } from '@/hooks/useReply';
 import { useScrollToBottom } from '@/hooks/useScrollToBottom';
+import { gotoChat, useCreateChat } from '@/hooks/useCreateChat';
+import { UnkownChatID } from '@/constant';
 import { ChatMessage } from './ChatMessage';
 import { InputArea } from './InputArea';
 
 export interface ChatProps {
-  chatId: string;
+  chatId?: string;
 }
 
 // TODO: do not scroll to bottom if user not in bottom
@@ -35,46 +38,68 @@ const useStyles = createStyles(theme => ({
   }
 }));
 
-export function Chat({ chatId }: ChatProps) {
+export function Chat({ chatId = UnkownChatID }: ChatProps) {
   const { classes } = useStyles();
 
   const context = api.useContext();
-
-  const messages = api.message.all.useQuery({ chatId }, { refetchIntervalInBackground: false });
+  const messages = api.message.all.useQuery({ chatId });
   const data = messages.data || [];
 
+  const createChat = useCreateChat();
+
+  const insertUserMessage = ({ ref, content, chatId }: NonNullable<(typeof sendMessage)['variables']>) => {
+    context.message.all.setData(
+      { chatId },
+      m => m && [...m, { id: ref, role: ChatCompletionRequestMessageRoleEnum.User, content, chatId, usage: null }]
+    );
+  };
+
   const sendMessage = api.message.send.useMutation({
-    onMutate: ({ content, chatId, ref }) => {
-      // insert user question to the messages list
-      context.message.all.setData(
-        { chatId },
-        m => m && [...m, { id: ref, role: ChatCompletionRequestMessageRoleEnum.User, content, chatId, usage: null }]
-      );
+    onMutate: payload => {
+      insertUserMessage(payload);
     },
-    onSuccess: ({ question, reply }, { ref }) => {
-      // update user question and add chat-gpt reply
+    onSuccess: ({ chatId, question, reply }, { ref }) => {
       context.message.all.setData({ chatId }, m => m && m.map(n => (n.id === ref ? question : n)).concat(reply));
     }
   });
 
   const updateChat = api.chat.update.useMutation({
     onSuccess: chat => {
-      context.chat.all.setData(undefined, c => c && c.map(cc => (cc.id === chat.id ? chat : cc)));
+      context.chat.all.setData(undefined, chats => chats && chats.map(c => (c.id === chat.id ? chat : c)));
     }
   });
 
-  const reply = useReply(sendMessage.isLoading ? chatId : '');
-
-  const handleSendMessage = (content: string) => {
+  const handleSendMessage = async (content: string) => {
     const system = isPromptCommand(content);
-    if (system) {
-      updateChat.mutate({ id: chatId, system });
+    const ref = nanoid();
+
+    if (chatId === UnkownChatID) {
+      if (!system) {
+        insertUserMessage({ chatId, ref, content });
+      }
+
+      const chat = await createChat.mutateAsync({ system });
+
+      if (!system) {
+        const { question, reply } = await sendMessage.mutateAsync({ chatId: chat.id, content, ref });
+        const messages = [question, reply];
+        context.message.all.setData({ chatId }, messages);
+        context.message.all.setData({ chatId: chat.id }, messages);
+      }
+      await gotoChat(chat.id);
     } else {
-      sendMessage.mutate({ chatId, content, ref: nanoid() });
+      if (system) {
+        updateChat.mutate({ id: chatId, system });
+      } else {
+        sendMessage.mutate({ chatId, content, ref });
+      }
     }
   };
 
-  const isLoading = updateChat.isLoading || sendMessage.isLoading;
+  const isLoading = createChat.isLoading || updateChat.isLoading || sendMessage.isLoading;
+  const waitForReply = createChat.isLoading || sendMessage.isLoading;
+
+  const reply = useReply(sendMessage.isLoading ? chatId : '');
 
   useScrollToBottom({
     // scroll to bottom on new message or reply update
@@ -88,10 +113,10 @@ export function Chat({ chatId }: ChatProps) {
       <div className={classes.messages}>
         {data.length ? (
           <>
-            {data.map((m, idx) => (
-              <ChatMessage key={idx} message={m} />
+            {data.map(m => (
+              <ChatMessage key={m.id} message={m} />
             ))}
-            {sendMessage.isLoading && <ChatMessage typing message={reply.message} />}
+            {waitForReply && <ChatMessage typing message={reply.message} />}
           </>
         ) : (
           !isLoading && (
@@ -105,6 +130,8 @@ export function Chat({ chatId }: ChatProps) {
       </div>
       <div className={classes.gradient}>
         <Container>
+          {/* FIXME: */}
+          {/* eslint-disable-next-line */}
           <InputArea loading={isLoading} onSubmit={handleSendMessage} />
         </Container>
       </div>
