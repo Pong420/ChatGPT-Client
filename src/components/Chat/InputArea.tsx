@@ -54,11 +54,13 @@ function InputAreaComponent({ onSubmit, loading }: InputAreaProps, ref: Ref<HTML
     setkeysDown(k => k.filter(kk => kk !== event.key));
   };
 
-  const handlePaste = (event: React.ClipboardEvent) => {
+  const handlePaste = (event: React.ClipboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     event.preventDefault();
     const clipboardData = event.clipboardData;
     const data = clipboardData?.getData('Text');
-    setContent(data?.trim() || '');
+    const start = event.currentTarget.selectionStart || 0;
+    const end = event.currentTarget.selectionEnd || 0;
+    setContent(`${content.slice(0, start)}${data?.trim() || ''}${content.slice(end)}`);
   };
 
   const handleBlur = () => setkeysDown([]);
