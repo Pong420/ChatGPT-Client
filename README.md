@@ -1,4 +1,4 @@
-## ChatGTP Client
+## ChatGPT Client
 
 ![screenshot](./.github/docs/screenshot.png)
 

@@ -85,7 +85,7 @@ function InputAreaComponent({ onSubmit, loading }: InputAreaProps, ref: Ref<HTML
 
   const promtps = useAutoComplete
     ? // the empty space anims to trigger prompts
-      searchPrompts(content.replace(/^\//, '') || ' ').map(p => `/${p.key}`)
+      searchPrompts(content.replace(/^\//, '') || ' ')
     : [];
 
   return useAutoComplete ? (
@@ -93,6 +93,7 @@ function InputAreaComponent({ onSubmit, loading }: InputAreaProps, ref: Ref<HTML
       {...inputProps}
       data={promtps}
       dropdownPosition="top"
+      filter={() => true}
       onDropdownOpen={handleDropdownMenu.open}
       onDropdownClose={handleDropdownMenu.close}
       ref={ref}
