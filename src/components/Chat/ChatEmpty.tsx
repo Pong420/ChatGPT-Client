@@ -21,7 +21,9 @@ export function SystemSuggestion({ system }: { system: string }) {
   return (
     <>
       <Title>I am {system}</Title>
-      <Text fz="md">How can I assist you?</Text>
+      <Text mt="md" fz="lg">
+        How can I assist you?
+      </Text>
     </>
   );
 }

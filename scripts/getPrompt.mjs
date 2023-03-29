@@ -16,7 +16,10 @@ const data = csv.split('\n').map(line => {
   );
 });
 
-const prompts = data.reduce((results, [k, v]) => (k ? { ...results, [k]: v } : results), {});
+const prompts = data.reduce(
+  (results, [k, v]) => (k ? { ...results, [k]: v?.replace(/My first sentence is ".*"/, '') } : results),
+  {}
+);
 const dirname = path.dirname(import.meta.url.slice('file://'.length));
 
 await fs.writeFile(path.join(dirname, '..', 'src', 'prompts.json'), JSON.stringify(prompts, null, 2));

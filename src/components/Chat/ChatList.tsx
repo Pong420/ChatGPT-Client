@@ -1,10 +1,10 @@
 import Head from 'next/head';
 import { api } from '@/utils/api';
 import { Stack, createStyles, rem } from '@mantine/core';
-import { IconMessages } from '@tabler/icons-react';
 import type { Chat as ChatData } from '@prisma/client';
 import { useNavigate } from '@/hooks/useNavigate';
 import { DeleteChat } from './ChatAction';
+import { getChatIcon } from './getChatIcon';
 
 const useStyles = createStyles(theme => ({
   list: {
@@ -51,6 +51,7 @@ function ChatItem({ chat: c }: { chat: ChatData }) {
   const { classes } = useStyles();
   const { router, pathname, active } = useNavigate(`/chat/${c.id}`);
   const title = c.title || c.system || 'Conversation';
+  const Icon = getChatIcon(c.system);
 
   return (
     <div
@@ -65,7 +66,7 @@ function ChatItem({ chat: c }: { chat: ChatData }) {
         </Head>
       )}
       <div className={classes.itemContent}>
-        <IconMessages size={20} className={classes.itemIcon} stroke={1.5} />
+        <Icon size={20} className={classes.itemIcon} stroke={1.5} />
         {c.title || c.system || 'Conversation'}
       </div>
 

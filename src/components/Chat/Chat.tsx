@@ -68,17 +68,11 @@ export function Chat({ chat }: ChatProps) {
     }
   });
 
-  const updateChat = api.chat.update.useMutation({
-    onSuccess: chat => {
-      context.chat.all.setData(undefined, chats => chats && chats.map(c => (c.id === chat.id ? chat : c)));
-    }
-  });
-
   const handleSendMessage = async (content: string) => {
     const system = isPromptCommand(content);
     const ref = nanoid();
 
-    if (chatId === UnkownChatID) {
+    if (chatId === UnkownChatID || system) {
       if (!system) {
         insertUserMessage({ chatId, ref, content });
       }
@@ -97,16 +91,13 @@ export function Chat({ chat }: ChatProps) {
 
       setTempChat(undefined);
     } else {
-      if (system) {
-        updateChat.mutate({ id: chatId, system });
-      } else {
-        sendMessage.mutate({ chatId, content, ref });
-      }
+      sendMessage.mutate({ chatId, content, ref });
     }
   };
 
-  const isLoading = createChat.isLoading || updateChat.isLoading || sendMessage.isLoading;
-  const waitForReply = createChat.isLoading || sendMessage.isLoading;
+  const isLoading = createChat.isLoading || sendMessage.isLoading;
+  const waitForReply =
+    isLoading && !!data.length && data.slice(-1)[0]?.role === ChatCompletionRequestMessageRoleEnum.User;
 
   const reply = useReply(sendMessage.isLoading ? chatId : '');
 
@@ -123,7 +114,7 @@ export function Chat({ chat }: ChatProps) {
         {data.map(m => (
           <ChatMessage key={m.id} message={m} />
         ))}
-        {!!data.length && waitForReply && <ChatMessage typing message={reply.message} />}
+        {waitForReply && <ChatMessage typing message={reply.message} />}
         {!data.length && !isLoading && <ChatEmpty system={chat?.system || tempChat?.system} />}
       </div>
       <div className={classes.gradient}>

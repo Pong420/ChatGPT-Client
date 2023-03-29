@@ -1,11 +1,14 @@
 import Fuse from 'fuse.js';
 import prompts from '@/prompts.json';
 
+export type Prompt = keyof typeof prompts;
+
 export type PromptSearchResult = ReturnType<typeof searchPrompts>[number];
 
 const fuse = new Fuse(Object.keys(prompts), { includeMatches: true, ignoreLocation: true });
 
-export const searchPrompts = (keyword: string) => fuse.search(keyword).map(k => ({ ...k, value: `/${k.item}` }));
+export const searchPrompts = (keyword: string) =>
+  fuse.search(keyword).map(({ refIndex, ...r }) => ({ ...r, value: `/${r.item}` }));
 
 export const isPromptCommand = (content: string) => {
   const [, system] = content.trim().match(/^\/(.*)/) || [];
