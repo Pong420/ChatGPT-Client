@@ -76,7 +76,8 @@ export const messageRouter = createTRPCRouter({
         {
           model: chat.model,
           messages,
-          stream: true
+          stream: true,
+          temperature: 0
         },
         { responseType: 'stream' }
       );

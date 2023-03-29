@@ -1,6 +1,7 @@
+import { useState } from 'react';
 import { nanoid } from 'nanoid';
-import { Text, Center, Container, Stack, createStyles } from '@mantine/core';
-import type { Chat } from '@prisma/client';
+import { Container, Stack, createStyles } from '@mantine/core';
+import type { Chat as ChatData } from '@prisma/client';
 import { api } from '@/utils/api';
 import { ChatCompletionRequestMessageRoleEnum } from '@/utils/openai';
 import { isPromptCommand } from '@/utils/prompts';
@@ -10,9 +11,10 @@ import { gotoChat, useCreateChat } from '@/hooks/useCreateChat';
 import { UnkownChatID } from '@/constant';
 import { ChatMessage } from './ChatMessage';
 import { InputArea } from './InputArea';
+import { ChatEmpty } from './ChatEmpty';
 
 export interface ChatProps {
-  chatId?: string;
+  chat?: ChatData;
 }
 
 // TODO: do not scroll to bottom if user not in bottom
@@ -38,8 +40,11 @@ const useStyles = createStyles(theme => ({
   }
 }));
 
-export function Chat({ chatId = UnkownChatID }: ChatProps) {
+export function Chat({ chat }: ChatProps) {
   const { classes } = useStyles();
+  const [tempChat, setTempChat] = useState<ChatData>();
+
+  const chatId = chat?.id || UnkownChatID;
 
   const context = api.useContext();
   const messages = api.message.all.useQuery({ chatId });
@@ -79,6 +84,7 @@ export function Chat({ chatId = UnkownChatID }: ChatProps) {
       }
 
       const chat = await createChat.mutateAsync({ system });
+      setTempChat(chat);
 
       if (!system) {
         const { question, reply } = await sendMessage.mutateAsync({ chatId: chat.id, content, ref });
@@ -86,7 +92,10 @@ export function Chat({ chatId = UnkownChatID }: ChatProps) {
         context.message.all.setData({ chatId }, messages);
         context.message.all.setData({ chatId: chat.id }, messages);
       }
+
       await gotoChat(chat.id);
+
+      setTempChat(undefined);
     } else {
       if (system) {
         updateChat.mutate({ id: chatId, system });
@@ -111,22 +120,11 @@ export function Chat({ chatId = UnkownChatID }: ChatProps) {
   return (
     <Stack className={classes.root} spacing={0}>
       <div className={classes.messages}>
-        {data.length ? (
-          <>
-            {data.map(m => (
-              <ChatMessage key={m.id} message={m} />
-            ))}
-            {waitForReply && <ChatMessage typing message={reply.message} />}
-          </>
-        ) : (
-          !isLoading && (
-            <Center h="100%">
-              <Text align="center" fw="bold">
-                No messages exist. Let&apos;s start by asking your first question
-              </Text>
-            </Center>
-          )
-        )}
+        {data.map(m => (
+          <ChatMessage key={m.id} message={m} />
+        ))}
+        {!!data.length && waitForReply && <ChatMessage typing message={reply.message} />}
+        {!data.length && !isLoading && <ChatEmpty system={chat?.system || tempChat?.system} />}
       </div>
       <div className={classes.gradient}>
         <Container>

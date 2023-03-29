@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { type GetServerSideProps } from 'next';
 import { default as router, useRouter } from 'next/router';
 import { getServerSession } from 'next-auth/next';
@@ -6,7 +7,6 @@ import { Chat } from '@/components/Chat/Chat';
 import { getLayout } from '@/components/Layout/Layout';
 import { api } from '@/utils/api';
 import { authOptions } from '@/server/auth';
-import { useEffect } from 'react';
 
 export const getServerSideProps: GetServerSideProps = async ({ req, res }) => {
   return {
@@ -29,7 +29,7 @@ function ChatPageComponent({ chatId }: { chatId?: string }) {
     }
   }, [shouldRedirect]);
 
-  return <Chat chatId={chatId} />;
+  return <Chat chat={chat} />;
 }
 
 const ChatPage: NextPageWithLayout = () => {
