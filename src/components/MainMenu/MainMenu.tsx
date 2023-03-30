@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { signOut } from 'next-auth/react';
 import { Button } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
@@ -7,13 +7,17 @@ import { MenuModal, type MenuModalProps, MenuModalRow, MenuModalSection } from '
 import { AccountMenu } from './AccountMenu';
 import { Preferences } from './Preferences';
 import pkg from '../../../package.json';
+import { useRouter } from 'next/router';
 
 const openGithub = () => window.open(`https://github.com/Pong420/chat-gpt-client`);
 
 export function MainMenu(props: MenuModalProps) {
+  const router = useRouter();
   const [accMenu, accMenuCtrl] = useDisclosure();
   const [prefMenu, prefMenuCtrl] = useDisclosure();
   const [loading, setLoading] = useState(false);
+
+  const onClose = props.onClose;
 
   async function handleSignOut() {
     setLoading(true);
@@ -22,6 +26,19 @@ export function MainMenu(props: MenuModalProps) {
     } catch (error) {}
     setLoading(false);
   }
+
+  useEffect(() => {
+    const handleRouteChange = () => {
+      accMenuCtrl.close();
+      prefMenuCtrl.close();
+      onClose();
+    };
+
+    router.events.on('routeChangeStart', handleRouteChange);
+    return () => {
+      router.events.off('routeChangeStart', handleRouteChange);
+    };
+  }, [router, accMenuCtrl, prefMenuCtrl, onClose]);
 
   return (
     <>

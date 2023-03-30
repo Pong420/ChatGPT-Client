@@ -1,17 +1,14 @@
 import { useState } from 'react';
-import { Container, Stack, Title } from '@mantine/core';
-import type { Usage } from '@prisma/client';
+import { Container, Title } from '@mantine/core';
 import type { CreateCompletionResponseUsage } from 'openai';
 import type { NextPageWithLayout } from '@/pages/_app';
 import { getLayout } from '@/components/Layout/Layout';
-import { UsageCard } from '@/components/Usage/UsageCard';
+import { type UsageData, UsageTable } from '@/components/Usage/UsageTable';
 import { api } from '@/utils/api';
 import dayjs from 'dayjs';
 
-type Data = Record<string, Record<string, Usage[]>>;
-
 const UsagePage: NextPageWithLayout = () => {
-  const [{ dateRange, dateRangeStr }] = useState(() => {
+  const [{ dateRange }] = useState(() => {
     const currentMonth = dayjs().endOf('month');
     const previousYears = dayjs().subtract(1, 'year').add(1, 'month').endOf('month');
     return {
@@ -22,42 +19,39 @@ const UsagePage: NextPageWithLayout = () => {
 
   const usages = api.usage.all.useQuery(dateRange, {
     select: data => {
-      const output: Data = {};
+      const output: UsageData = {};
+      const dateToKey = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+
+      const from = new Date(dateRange.from);
+      for (let d = new Date(dateRange.to); d > from; d.setMonth(d.getMonth() - 1)) {
+        output[dateToKey(d)] = { prompt: 0, completion: 0, total: 0 };
+      }
 
       for (const d of data) {
-        const [, year = '', month = ''] = d.createdAt.toISOString().match(/(\d+)-(\d+)-(\d+)/) || [];
-        output[year] = output[year] || {};
-        output[year][month] = output[year][month] || [];
-        output[year][month].push(d);
+        const k = dateToKey(d.createdAt);
+        const v = output[k];
+        if (!v) throw new Error('bad implementation');
+
+        const usage = d.data as unknown as CreateCompletionResponseUsage;
+
+        output[k] = {
+          ...v,
+          prompt: v.prompt + usage.prompt_tokens,
+          completion: v.completion + usage.completion_tokens,
+          total: v.total + usage.completion_tokens
+        };
       }
 
       return output;
     }
   });
-  const data = usages.data || {};
-  const cards: React.ReactNode[] = [];
 
-  for (const year in data) {
-    const datasets = data[year] || {};
-    for (const month in datasets) {
-      const monthly = datasets[month] || [];
-      let [prompt, completion, total] = [0, 0, 0];
-      for (const dd of monthly) {
-        const d = dd.data as unknown as CreateCompletionResponseUsage;
-        prompt += d.prompt_tokens;
-        completion += d.completion_tokens;
-        total += d.total_tokens;
-      }
-      cards.push(<UsageCard key={`${year}-${month}`} year={year} month={month} tokens={[prompt, completion, total]} />);
-    }
-  }
+  const data = usages.data;
 
   return (
     <Container py="lg">
-      <Title>
-        Usage from {dateRangeStr.from} to {dateRangeStr.to}
-      </Title>
-      <Stack mt="lg">{cards}</Stack>
+      <Title>Tokens Used</Title>
+      <UsageTable data={data} />
     </Container>
   );
 };
